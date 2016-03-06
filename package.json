@@ -1,0 +1,16 @@
+{
+  "name": "sanctuary-html",
+  "version": "0.0.1",
+  "description": "Functional HTML parsing",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/plaid/sanctuary-html.git"
+  },
+  "scripts": {},
+  "dependencies": {
+    "htmlparser2": "3.9.x"
+  },
+  "devDependencies": {},
+  "files": []
+}
