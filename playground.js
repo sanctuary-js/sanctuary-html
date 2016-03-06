@@ -2,6 +2,8 @@
 
 const fs = require('fs');
 
+const R = require('ramda');
+
 const rawHtml = fs.readFileSync('./snippet.html', 'utf8');
 
 // const htmlparser = require('htmlparser2');

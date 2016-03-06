@@ -26,52 +26,65 @@
 
   var _ = R.__;
 
-  //  Node :: Type
-  var Node = $.NullaryType(
+  //  $Node :: Type
+  var $Node = $.NullaryType(
     'sanctuary-html/Node',
-    R.T  // TODO: Write suitable predicate.
+    x => S.type(x) === 'sanctuary-html/Node'
+    // R.T  // TODO: Write suitable predicate.
   );
 
-  //  Element :: Type
-  var Element = $.NullaryType(
+  //  $Element :: Type
+  var $Element = $.NullaryType(
     'sanctuary-html/Element',
     R.T  // TODO: Write suitable predicate.
   );
 
-  var def = $.create(true, $.env.concat([S.EitherType, Element, Node]));
+  var def = $.create(true, $.env.concat([S.EitherType, $Node]));
 
   //  notImplemented :: -> Error
   var notImplemented = function() {
     return new Error('Not implemented');
   };
 
+  // Node :: HtmlParserNode -> Node
+  const Node =
+  def('Node',
+      {},
+      [$.Any, $Node],
+      n => ({
+        '@@type': 'sanctuary-html/Node',
+        toString: R.always('Node(...)'),
+        value: n,
+      }));
+
   //# html :: Element -> String
   H.html =
   def('html',
       {},
-      [Node, $.String],
+      [$Node, $.String],
       notImplemented);
 
   //# parse :: String -> Either Error [Node]
   H.parse =
   def('parse',
       {},
-      [$.String, S.EitherType($.Error, $.Array(Node))],
+      [$.String, S.EitherType($.Error, $.Array($Node))],
       s => {
         let _result;
-        parser = new htmlparser(new htmlparser.DomHandler((err, dom) =>
-          _result = err == null ? S.Right(dom) : S.Left(err)
-        }));
+        const handler = new htmlparser.DomHandler((err, dom) => {
+          _result = err == null ? S.Right(R.map(Node, dom)) : S.Left(err)
+        });
+        const parser = new htmlparser.Parser(handler);
         parser.write(s);
         parser.done();
-        return result;
+        return _result;
       });
 
   //# text :: Element -> String
   H.text =
   def('text',
       {},
-      [Node, $.String],
+      [$Node, $.String],
       notImplemented);
 
   return H;
