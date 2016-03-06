@@ -13,14 +13,12 @@
   /* istanbul ignore else */
   if (typeof module !== 'undefined') {
     module.exports =
-    f(require('ramda'), require('sanctuary'), require('sanctuary-def'));
+    f(require('htmlparser2'), require('ramda'), require('sanctuary'), require('sanctuary-def'));
   } else if (typeof define === 'function' && define.amd != null) {
-    define(['ramda', 'sanctuary', 'sanctuary-def'], f);
-  } else {
-    self.sanctuaryHtml = f(self.R, self.sanctuary, self.sanctuaryDef);
+    define(['htmlparser2', 'ramda', 'sanctuary', 'sanctuary-def'], f);
   }
 
-}(function(R, S, $) {
+}(function(htmlparser, R, S, $) {
 
   'use strict';
 
@@ -40,7 +38,7 @@
     R.T  // TODO: Write suitable predicate.
   );
 
-  var def = $.create(true, $.env.concat([Node, Element]));
+  var def = $.create(true, $.env.concat([S.EitherType, Element, Node]));
 
   //  notImplemented :: -> Error
   var notImplemented = function() {
@@ -53,6 +51,21 @@
       {},
       [Node, $.String],
       notImplemented);
+
+  //# parse :: String -> Either Error [Node]
+  H.parse =
+  def('parse',
+      {},
+      [$.String, S.EitherType($.Error, $.Array(Node))],
+      s => {
+        let _result;
+        parser = new htmlparser(new htmlparser.DomHandler((err, dom) =>
+          _result = err == null ? S.Right(dom) : S.Left(err)
+        }));
+        parser.write(s);
+        parser.done();
+        return result;
+      });
 
   //# text :: Element -> String
   H.text =
