@@ -24,9 +24,42 @@
 
   'use strict';
 
+  var H = {};
+
   var _ = R.__;
 
-  var H = {};
+  //  Node :: Type
+  var Node = $.NullaryType(
+    'sanctuary-html/Node',
+    R.T  // TODO: Write suitable predicate.
+  );
+
+  //  Element :: Type
+  var Element = $.NullaryType(
+    'sanctuary-html/Element',
+    R.T  // TODO: Write suitable predicate.
+  );
+
+  var def = $.create(true, $.env.concat([Node, Element]));
+
+  //  notImplemented :: -> Error
+  var notImplemented = function() {
+    return new Error('Not implemented');
+  };
+
+  //# html :: Element -> String
+  H.html =
+  def('html',
+      {},
+      [Node, $.String],
+      notImplemented);
+
+  //# text :: Element -> String
+  H.text =
+  def('text',
+      {},
+      [Node, $.String],
+      notImplemented);
 
   return H;
 
