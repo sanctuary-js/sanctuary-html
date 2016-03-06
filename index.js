@@ -4,89 +4,132 @@
 //.
 //. ## API
 
-/* global define, self */
+'use strict';
 
-;(function(f) {
+const select = require('css-select');
+const serializer = require('dom-serializer');
+const domelementtype = require('domelementtype');
+const htmlparser = require('htmlparser2');
+const R = require('ramda');
+const S = require('sanctuary');
+const $ = require('sanctuary-def');
 
-  'use strict';
+const _ = R.__;
 
-  /* istanbul ignore else */
-  if (typeof module !== 'undefined') {
-    module.exports =
-    f(require('htmlparser2'), require('ramda'), require('sanctuary'), require('sanctuary-def'));
-  } else if (typeof define === 'function' && define.amd != null) {
-    define(['htmlparser2', 'ramda', 'sanctuary', 'sanctuary-def'], f);
-  }
+//    $Node :: Type
+const $Node = $.NullaryType(
+  'sanctuary-html/Node',
+  x => x != null && x['_@@type'] === 'sanctuary-html/Node'
+);
 
-}(function(htmlparser, R, S, $) {
+//    NodeType :: Type
+const NodeType = $.EnumType([
+  domelementtype.CDATA,     //<![CDATA[ ... ]]>
+  domelementtype.Comment,   //<!-- ... -->
+  domelementtype.Directive, //<? ... ?>
+  domelementtype.Doctype,
+  domelementtype.Script,    //<script> tags
+  domelementtype.Style,     //<style> tags
+  domelementtype.Tag,       //Any tag
+  domelementtype.Text,      //Text
+]);
 
-  'use strict';
+const def = $.create(true, $.env.concat([S.EitherType, $Node]));
 
-  var H = {};
+//    notImplemented :: -> Error
+const notImplemented = () => new Error('Not implemented');
 
-  var _ = R.__;
+//  Node :: HtmlParserNode -> Node
+const Node =
+def('Node',
+    {},
+    [$.Any, $Node],
+    _node => ({
+      '_@@type': 'sanctuary-html/Node',
+      toString: () => 'Node(' + R.toString(_html(_node)) + ')',
+      value: _node,
+    }));
 
-  //  $Node :: Type
-  var $Node = $.NullaryType(
-    'sanctuary-html/Node',
-    x => S.type(x) === 'sanctuary-html/Node'
-    // R.T  // TODO: Write suitable predicate.
-  );
-
-  //  $Element :: Type
-  var $Element = $.NullaryType(
-    'sanctuary-html/Element',
-    R.T  // TODO: Write suitable predicate.
-  );
-
-  var def = $.create(true, $.env.concat([S.EitherType, $Node]));
-
-  //  notImplemented :: -> Error
-  var notImplemented = function() {
-    return new Error('Not implemented');
-  };
-
-  // Node :: HtmlParserNode -> Node
-  const Node =
-  def('Node',
-      {},
-      [$.Any, $Node],
-      n => ({
-        '@@type': 'sanctuary-html/Node',
-        toString: R.always('Node(...)'),
-        value: n,
-      }));
-
-  //# html :: Element -> String
-  H.html =
-  def('html',
-      {},
-      [$Node, $.String],
-      notImplemented);
-
-  //# parse :: String -> Either Error [Node]
-  H.parse =
-  def('parse',
-      {},
-      [$.String, S.EitherType($.Error, $.Array($Node))],
-      s => {
-        let _result;
-        const handler = new htmlparser.DomHandler((err, dom) => {
-          _result = err == null ? S.Right(R.map(Node, dom)) : S.Left(err)
-        });
-        const parser = new htmlparser.Parser(handler);
-        parser.write(s);
-        parser.done();
-        return _result;
+//# parse :: String -> Either Error [Node]
+exports.parse =
+def('parse',
+    {},
+    [$.String, S.EitherType($.Error, $.Array($Node))],
+    s => {
+      let result;
+      const handler = new htmlparser.DomHandler((err, dom) => {
+        result = err == null ? S.Right(R.map(Node, dom)) : S.Left(err)
       });
+      const parser = new htmlparser.Parser(handler);
+      parser.write(s);
+      parser.done();
+      return result;
+    });
 
-  //# text :: Element -> String
-  H.text =
-  def('text',
-      {},
-      [$Node, $.String],
-      notImplemented);
+//    _html :: HtmlParserNode -> String
+const _html = _node => serializer(_node, {});
 
-  return H;
+//# html :: Node -> String
+const html = exports.html =
+def('html',
+    {},
+    [$Node, $.String],
+    node => _html(node.value));
 
-}));
+//    _text :: HtmlParserNode -> String
+const _text = function _text(_node) {
+  //  TODO: Handle all possible NodeType values.
+  switch (_node.type) {
+    case 'text':
+      return _node.data;
+    case 'tag':
+      return R.join('', R.map(_text, _node.children));
+    default:
+      throw new TypeError('Unexpected type ‘' + _node.type + '’');
+  }
+};
+
+//# text :: Node -> String
+const text = exports.text =
+def('text',
+    {},
+    [$Node, $.String],
+    node => _text(node.value));
+
+//# find :: String -> Node -> [Node]
+exports.find =
+def('find',
+    {},
+    [$.String, $Node, $.Array($Node)],
+    (selector, node) => R.map(Node, select(selector, node.value, {})));
+
+// { '_@@type': 'sanctuary-html/Node',
+//  toString: [Function],
+//  value:
+//   { type: 'tag',
+//     name: 'html',
+//     attribs: {},
+//     children: [ [Object], [Object], [Object], [Object], [Object] ],
+//     next:
+//      { data: '\n',
+//        type: 'text',
+//        next: null,
+//        prev: [Circular],
+//        parent: null },
+//     prev: null,
+//     parent: null } }
+// { '_@@type': 'sanctuary-html/Node',
+//  toString: [Function],
+//  value:
+//   { data: '\n',
+//     type: 'text',
+//     next: null,
+//     prev:
+//      { type: 'tag',
+//        name: 'html',
+//        attribs: {},
+//        children: [Object],
+//        next: [Circular],
+//        prev: null,
+//        parent: null },
+//     parent: null } }

@@ -3,31 +3,32 @@
 const fs = require('fs');
 
 const R = require('ramda');
-
-const rawHtml = fs.readFileSync('./snippet.html', 'utf8');
-
-// const htmlparser = require('htmlparser2');
-//
-// let myDom;
-//
-// const handler = new htmlparser.DomHandler(function (error, dom) {
-//     if (error) {
-//       throw error;
-//     } else {
-//       myDom = dom;
-//     }
-// });
-//
-// const parser = new htmlparser.Parser(handler);
-// parser.write(rawHtml);
-// parser.done();
-//
-// debugger;
-//
-// console.log(myDom);
+const S = require('sanctuary');
 
 const H = require('./index');
 
-const _dom = H.parse(rawHtml)
 
-console.log(R.toString(_dom));
+const _ = R.__;
+
+const input = fs.readFileSync('./snippet.html', 'utf8');
+
+S.pipe([H.parse,                                            // Either Error [Node]
+        R.map(S.head),                                      // Either Error (Maybe Node)
+        R.chain(S.maybeToEither(new Error('No elements'))), // Either Error Node
+        R.map(H.text),                                      // Either Error String
+        console.log],
+       input);
+
+S.pipe([H.parse,                                            // Either Error [Node]
+        R.map(S.head),                                      // Either Error (Maybe Node)
+        R.chain(S.maybeToEither(new Error('No elements'))), // Either Error Node
+        R.map(H.html),                                      // Either Error String
+        console.log],
+       input);
+
+S.pipe([H.parse,                                            // Either Error [Node]
+        R.map(S.head),                                      // Either Error (Maybe Node)
+        R.chain(S.maybeToEither(new Error('No elements'))), // Either Error Node
+        R.map(H.find('.bigtitle')),                         // Either Error [Node]
+        console.log],
+       input);
