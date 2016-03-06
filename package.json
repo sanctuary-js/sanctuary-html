@@ -1,6 +1,6 @@
 {
   "name": "sanctuary-html",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "Functional HTML parsing",
   "license": "MIT",
   "repository": {
