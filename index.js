@@ -22,6 +22,9 @@ const elementTypes = [
   domelementtype.Tag,
 ];
 
+//  ElementType :: Type
+const ElementType = $.EnumType(elementTypes);
+
 //  $Node :: Type
 const $Node = $.NullaryType(
   'sanctuary-html/Node',
@@ -32,7 +35,7 @@ const $Node = $.NullaryType(
 const $Element = $.NullaryType(
   'sanctuary-html/Element',
   R.both($Node.test,
-         S.compose($.EnumType(elementTypes).test, R.path(['value', 'type'])))
+         S.compose(ElementType.test, R.path(['value', 'type'])))
 );
 
 //  env :: [Type]
@@ -203,7 +206,7 @@ def('parent',
 //  _prev :: HtmlParserNode -> Maybe Element
 const _prev =
 S.pipe([S.get(Object, 'prev'),
-        R.chain(_node => $.EnumType(elementTypes).test(_node.type) ?
+        R.chain(_node => ElementType.test(_node.type) ?
                            S.Just(Node(_node)) :
                            _prev(_node))]);
 
