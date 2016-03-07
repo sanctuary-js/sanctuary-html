@@ -16,25 +16,41 @@ const $ = require('sanctuary-def');
 
 const _ = R.__;
 
+//    elementTypes :: [String]
+const elementTypes = [
+  domelementtype.Script,    //<script> tags
+  domelementtype.Style,     //<style> tags
+  domelementtype.Tag,       //Any tag
+];
+
+//    NodeType :: Type
+const NodeType = $.EnumType(R.concat(
+  elementTypes,
+  [domelementtype.CDATA,     //<![CDATA[ ... ]]>
+   domelementtype.Comment,   //<!-- ... -->
+   domelementtype.Directive, //<? ... ?>
+   domelementtype.Doctype,
+   domelementtype.Text,      //Text
+  ]));
+
 //    $Node :: Type
 const $Node = $.NullaryType(
   'sanctuary-html/Node',
   x => x != null && x['_@@type'] === 'sanctuary-html/Node'
 );
 
-//    NodeType :: Type
-const NodeType = $.EnumType([
-  domelementtype.CDATA,     //<![CDATA[ ... ]]>
-  domelementtype.Comment,   //<!-- ... -->
-  domelementtype.Directive, //<? ... ?>
-  domelementtype.Doctype,
-  domelementtype.Script,    //<script> tags
-  domelementtype.Style,     //<style> tags
-  domelementtype.Tag,       //Any tag
-  domelementtype.Text,      //Text
-]);
+//    $Element :: type
+const $Element = $.NullaryType(
+  'sanctuary-html/Element',
+  R.both($Node.test,
+         S.compose($.EnumType(elementTypes).test, R.path(['value', 'type'])))
+);
 
-const def = $.create(true, $.env.concat([S.EitherType, $Node]));
+
+const def = $.create(true, $.env.concat([S.EitherType,
+                                         S.MaybeType,
+                                         $Element,
+                                         $Node]));
 
 //    notImplemented :: -> Error
 const notImplemented = () => new Error('Not implemented');
@@ -50,20 +66,23 @@ def('Node',
       value: _node,
     }));
 
-//# parse :: String -> Either Error [Node]
+//# parse :: String -> [Node]
 exports.parse =
 def('parse',
     {},
-    [$.String, S.EitherType($.Error, $.Array($Node))],
+    [$.String, $.Array($Node)],
     s => {
-      let result;
+      let nodes;
       const handler = new htmlparser.DomHandler((err, dom) => {
-        result = err == null ? S.Right(R.map(Node, dom)) : S.Left(err)
+        if (err != null) {
+          throw err;
+        }
+        nodes = R.map(Node, dom);
       });
       const parser = new htmlparser.Parser(handler);
       parser.write(s);
       parser.done();
-      return result;
+      return nodes;
     });
 
 //    _html :: HtmlParserNode -> String
@@ -102,6 +121,30 @@ def('find',
     {},
     [$.String, $Node, $.Array($Node)],
     (selector, node) => R.map(Node, select(selector, node.value, {})));
+
+//# attr :: String -> Node -> Maybe String
+exports.attr =
+def('attr',
+    {},
+    [$.String, $Node, S.MaybeType($.String)],
+    (key, node) => S.get(String, key, node.value.attribs));
+
+// TODO: See if we can do nice selector validation
+//# is :: String -> Node -> Boolean
+exports.is =
+def('is',
+    {},
+    [$.String, $Node, $.Boolean],
+    (selector, node) => {
+      return select.is(node.value, selector, {});
+    });
+
+// children :: Element -> [Node]
+exports.children =
+def('children',
+    {},
+    [$Element, $.Array($Node)],
+    el => R.map(Node, el.value.children));
 
 // { '_@@type': 'sanctuary-html/Node',
 //  toString: [Function],

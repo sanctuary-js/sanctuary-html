@@ -12,23 +12,43 @@ const _ = R.__;
 
 const input = fs.readFileSync('./snippet.html', 'utf8');
 
-S.pipe([H.parse,                                            // Either Error [Node]
-        R.map(S.head),                                      // Either Error (Maybe Node)
-        R.chain(S.maybeToEither(new Error('No elements'))), // Either Error Node
-        R.map(H.text),                                      // Either Error String
+S.pipe([H.parse,                // [Node]
+        S.head,                 // Maybe Node
+        R.map(H.text),          // Maybe String
         console.log],
        input);
 
-S.pipe([H.parse,                                            // Either Error [Node]
-        R.map(S.head),                                      // Either Error (Maybe Node)
-        R.chain(S.maybeToEither(new Error('No elements'))), // Either Error Node
-        R.map(H.html),                                      // Either Error String
+S.pipe([H.parse,
+        S.head,
+        R.map(H.html),
         console.log],
        input);
 
-S.pipe([H.parse,                                            // Either Error [Node]
-        R.map(S.head),                                      // Either Error (Maybe Node)
-        R.chain(S.maybeToEither(new Error('No elements'))), // Either Error Node
-        R.map(H.find('.bigtitle')),                         // Either Error [Node]
+S.pipe([H.parse,
+        S.head,
+        R.map(H.find('.bigtitle')),
+        console.log],
+       input);
+
+S.pipe([H.parse,
+        S.head,
+        R.map(H.find('input[type=checkbox]')),
+        R.map(R.map(H.attr('checked'))),
+        console.log],
+       input);
+
+S.pipe([H.parse,
+        S.head,
+        R.map(H.find('h1')),
+        R.map(R.filter(H.is('xxx'))),
+        console.log],
+       input);
+
+S.pipe([H.parse,
+        S.head,
+        R.map(H.find('body')),
+        R.chain(S.head),
+        R.map(H.children),
+        R.map(R.filter(H.is('.smalltitle'))),
         console.log],
        input);
