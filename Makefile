@@ -2,6 +2,19 @@ DOCTEST = node_modules/.bin/doctest --nodejs '--harmony' --module commonjs --pre
 JSCS = node_modules/.bin/jscs
 JSHINT = node_modules/.bin/jshint
 NPM = npm
+TRANSCRIBE = node_modules/.bin/transcribe
+XYZ = node_modules/.bin/xyz --repo git@github.com:plaid/sanctuary-html.git --script scripts/prepublish
+
+
+.PHONY: all
+all: README.md
+
+README.md: index.js
+	$(TRANSCRIBE) \
+	  --heading-level 4 \
+	  --url 'https://github.com/plaid/sanctuary-html/blob/v$(VERSION)/{filename}#L{line}' \
+	  -- $^ \
+	| sed 's/<h4 name="\(.*\)#\(.*\)">\(.*\)\1#\2/<h4 name="\1.prototype.\2">\3\1#\2/' >'$@'
 
 
 .PHONY: lint
@@ -15,6 +28,11 @@ lint:
 	      -e 's:\[.*\]\[\(.*\)\]:\1:' \
 	      -e '/0-9/d' \
 	| xargs -I '{}' sh -c "grep '^//[.] \[{}\]: ' index.js"
+
+
+.PHONY: release-major release-minor release-patch
+release-major release-minor release-patch:
+	@$(XYZ) --increment $(@:release-%=%)
 
 
 .PHONY: setup

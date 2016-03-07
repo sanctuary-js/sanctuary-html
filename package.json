@@ -20,7 +20,9 @@
   "devDependencies": {
     "doctest": "0.10.x",
     "jscs": "2.11.x",
-    "jshint": "2.9.x"
+    "jshint": "2.9.x",
+    "transcribe": "0.3.x",
+    "xyz": "0.5.x"
   },
   "files": []
 }
