@@ -6,13 +6,17 @@
 
 'use strict';
 
-const select = require('css-select');
-const serializer = require('dom-serializer');
-const domelementtype = require('domelementtype');
-const htmlparser = require('htmlparser2');
-const R = require('ramda');
-const S = require('sanctuary');
-const $ = require('sanctuary-def');
+const select            = require('css-select');
+const serializer        = require('dom-serializer');
+const domelementtype    = require('domelementtype');
+const htmlparser        = require('htmlparser2');
+const R                 = require('ramda');
+const S                 = require('sanctuary');
+const $                 = require('sanctuary-def');
+
+const $Maybe            = S.MaybeType;
+const Just              = S.Just;
+const Nothing           = S.Nothing;  // jshint ignore:line
 
 
 //  elementTypes :: [String]
@@ -42,8 +46,7 @@ const $Element = $.NullaryType(
 const Direction = $.EnumType(['prev', 'next']);
 
 //  env :: [Type]
-const env =
-$.env.concat([S.EitherType, S.MaybeType, Direction, $Element, $Node]);
+const env = $.env.concat([$Maybe, Direction, $Element, $Node]);
 
 //  def :: (String, StrMap [Type], [Type], Function) -> Function
 const def = $.create(true, env);
@@ -53,19 +56,22 @@ const Node =
 def('Node',
     {},
     [$.Any, $Node],
-    _node => ({'_@@type': 'sanctuary-html/Node',
-               toString: () => 'Node(' + R.toString(_html(_node)) + ')',
-               value: _node}));
+    _node => ({
+      '_@@type': 'sanctuary-html/Node',
+      equals: _other => $Node.test(_other) && String(_other) === String(_node),
+      toString: () => 'Node(' + R.toString(_html(_node)) + ')',
+      value: _node,
+    }));
 
 //# parse :: String -> [Node]
 //.
 //. TK.
 //.
 //. ```javascript
-//. > 'TK'
-//. 'TK'
+//. > R.toString(parse('<ul><li>one</li><li>two</li></ul>'))
+//. '[Node("<ul><li>one</li><li>two</li></ul>")]'
 //. ```
-exports.parse =
+const parse =
 def('parse',
     {},
     [$.String, $.Array($Node)],
@@ -91,10 +97,10 @@ const _html = _node => serializer(_node, {});
 //. TK.
 //.
 //. ```javascript
-//. > 'TK'
-//. 'TK'
+//. > R.map(html, parse('<ul><li>one</li><li>two</li></ul>'))
+//. ['<ul><li>one</li><li>two</li></ul>']
 //. ```
-exports.html =
+const html =
 def('html',
     {},
     [$Node, $.String],
@@ -127,10 +133,13 @@ const _text = function _text(_node) {
 //. TK.
 //.
 //. ```javascript
-//. > 'TK'
-//. 'TK'
+//. > R.map(text, parse('<ul><li>one</li><li>two</li></ul>'))
+//. ['onetwo']
+//.
+//. > R.map(text, R.chain(children, parse('<ul><li>one</li><li>two</li></ul>')))
+//. ['one', 'two']
 //. ```
-exports.text =
+const text =
 def('text',
     {},
     [$Node, $.String],
@@ -141,10 +150,13 @@ def('text',
 //. TK.
 //.
 //. ```javascript
-//. > 'TK'
-//. 'TK'
+//. > R.toString(R.chain(find('li'), parse('<ul><li>one</li><li>two</li></ul>')))
+//. '[Node("<li>one</li>"), Node("<li>two</li>")]'
+//.
+//. > R.toString(R.chain(find('dl'), parse('<ul><li>one</li><li>two</li></ul>')))
+//. '[]'
 //. ```
-exports.find =
+const find =
 def('find',
     {},
     [$.String, $Node, $.Array($Node)],
@@ -155,13 +167,13 @@ def('find',
 //. TK.
 //.
 //. ```javascript
-//. > 'TK'
-//. 'TK'
+//. > R.toString(R.map(attr('class'), parse('<div class="selected"></div><div></div>')))
+//. '[Just("selected"), Nothing()]'
 //. ```
-exports.attr =
+const attr =
 def('attr',
     {},
-    [$.String, $Node, S.MaybeType($.String)],
+    [$.String, $Node, $Maybe($.String)],
     (key, node) => S.get(String, key, node.value.attribs));
 
 //  TODO: See if we can do nice selector validation
@@ -170,10 +182,10 @@ def('attr',
 //. TK.
 //.
 //. ```javascript
-//. > 'TK'
-//. 'TK'
+//. > R.map(is('.selected'), parse('<li class="selected">one</li><li>two</li><li>three</li>'))
+//. [true, false, false]
 //. ```
-exports.is =
+const is =
 def('is',
     {},
     [$.String, $Node, $.Boolean],
@@ -184,10 +196,10 @@ def('is',
 //. TK.
 //.
 //. ```javascript
-//. > 'TK'
-//. 'TK'
+//. > R.toString(R.chain(children, parse('<ul><li>one</li><li>two</li></ul>')))
+//. '[Node("<li>one</li>"), Node("<li>two</li>")]'
 //. ```
-exports.children =
+const children =
 def('children',
     {},
     [$Element, $.Array($Node)],
@@ -198,23 +210,26 @@ def('children',
 //. TK.
 //.
 //. ```javascript
-//. > 'TK'
-//. 'TK'
+//. > R.toString(R.map(parent, R.chain(children, parse('<ul><li>one</li><li>two</li></ul>'))))
+//. '[Just(Node("<ul><li>one</li><li>two</li></ul>")), Just(Node("<ul><li>one</li><li>two</li></ul>"))]'
+//.
+//. > R.map(parent, parse('<ul></ul>'))
+//. [Nothing()]
 //. ```
-exports.parent =
+const parent =
 def('parent',
     {},
-    [$Node, S.MaybeType($Element)],
+    [$Node, $Maybe($Element)],
     S.compose(R.map(Node), S.gets(Object, ['value', 'parent'])));
 
 //  adjacent :: Direction -> HtmlParserNode -> Maybe Element
 const adjacent =
 def('adjacent',
     {},
-    [Direction, $.Any, S.MaybeType($Element)],
+    [Direction, $.Any, $Maybe($Element)],
     function adjacent(direction, _node) {
       return R.chain(_node => ElementType.test(_node.type) ?
-                                S.Just(Node(_node)) :
+                                Just(Node(_node)) :
                                 adjacent(direction, _node),
                      S.get(Object, direction, _node));
     });
@@ -224,13 +239,16 @@ def('adjacent',
 //. TK.
 //.
 //. ```javascript
-//. > 'TK'
-//. 'TK'
+//. > S.pipe([parse, R.chain(find('li')), S.last, R.chain(prev), R.map(text)], '<ul><li>one</li><li>two</li></ul>')
+//. Just('one')
+//.
+//. > S.pipe([parse, R.chain(find('li')), S.head, R.chain(prev), R.map(text)], '<ul><li>one</li><li>two</li></ul>')
+//. Nothing()
 //. ```
-exports.prev =
+const prev =
 def('prev',
     {},
-    [$Element, S.MaybeType($Element)],
+    [$Element, $Maybe($Element)],
     S.compose(adjacent('prev'), R.prop('value')));
 
 //# next :: Element -> Maybe Element
@@ -238,11 +256,28 @@ def('prev',
 //. TK.
 //.
 //. ```javascript
-//. > 'TK'
-//. 'TK'
+//. > S.pipe([parse, R.chain(find('li')), S.head, R.chain(next), R.map(text)], '<ul><li>one</li><li>two</li></ul>')
+//. Just('two')
+//.
+//. > S.pipe([parse, R.chain(find('li')), S.last, R.chain(next), R.map(text)], '<ul><li>one</li><li>two</li></ul>')
+//. Nothing()
 //. ```
-exports.next =
+const next =
 def('next',
     {},
-    [$Element, S.MaybeType($Element)],
+    [$Element, $Maybe($Element)],
     S.compose(adjacent('next'), R.prop('value')));
+
+
+module.exports = {
+  attr: attr,
+  children: children,
+  find: find,
+  html: html,
+  is: is,
+  next: next,
+  parent: parent,
+  parse: parse,
+  prev: prev,
+  text: text,
+};

@@ -1,3 +1,4 @@
+DOCTEST = node_modules/.bin/doctest --nodejs '--harmony' --module commonjs --prefix .
 JSCS = node_modules/.bin/jscs
 JSHINT = node_modules/.bin/jshint
 NPM = npm
@@ -19,3 +20,8 @@ lint:
 .PHONY: setup
 setup:
 	$(NPM) install
+
+
+.PHONY: test
+test:
+	$(DOCTEST) -- index.js
