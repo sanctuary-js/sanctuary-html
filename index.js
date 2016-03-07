@@ -14,59 +14,50 @@ const R = require('ramda');
 const S = require('sanctuary');
 const $ = require('sanctuary-def');
 
-const _ = R.__;
 
-//    elementTypes :: [String]
+//  elementTypes :: [String]
 const elementTypes = [
-  domelementtype.Script,    //<script> tags
-  domelementtype.Style,     //<style> tags
-  domelementtype.Tag,       //Any tag
+  domelementtype.Script,
+  domelementtype.Style,
+  domelementtype.Tag,
 ];
 
-//    NodeType :: Type
-const NodeType = $.EnumType(R.concat(
-  elementTypes,
-  [domelementtype.CDATA,     //<![CDATA[ ... ]]>
-   domelementtype.Comment,   //<!-- ... -->
-   domelementtype.Directive, //<? ... ?>
-   domelementtype.Doctype,
-   domelementtype.Text,      //Text
-  ]));
-
-//    $Node :: Type
+//  $Node :: Type
 const $Node = $.NullaryType(
   'sanctuary-html/Node',
   x => x != null && x['_@@type'] === 'sanctuary-html/Node'
 );
 
-//    $Element :: type
+//  $Element :: type
 const $Element = $.NullaryType(
   'sanctuary-html/Element',
   R.both($Node.test,
          S.compose($.EnumType(elementTypes).test, R.path(['value', 'type'])))
 );
 
+//  env :: [Type]
+const env = $.env.concat([S.EitherType, S.MaybeType, $Element, $Node]);
 
-const def = $.create(true, $.env.concat([S.EitherType,
-                                         S.MaybeType,
-                                         $Element,
-                                         $Node]));
-
-//    notImplemented :: -> Error
-const notImplemented = () => new Error('Not implemented');
+//  def :: (String, StrMap [Type], [Type], Function) -> Function
+const def = $.create(true, env);
 
 //  Node :: HtmlParserNode -> Node
 const Node =
 def('Node',
     {},
     [$.Any, $Node],
-    _node => ({
-      '_@@type': 'sanctuary-html/Node',
-      toString: () => 'Node(' + R.toString(_html(_node)) + ')',
-      value: _node,
-    }));
+    _node => ({'_@@type': 'sanctuary-html/Node',
+               toString: () => 'Node(' + R.toString(_html(_node)) + ')',
+               value: _node}));
 
 //# parse :: String -> [Node]
+//.
+//. TK.
+//.
+//. ```javascript
+//. > 'TK'
+//. 'TK'
+//. ```
 exports.parse =
 def('parse',
     {},
@@ -85,37 +76,67 @@ def('parse',
       return nodes;
     });
 
-//    _html :: HtmlParserNode -> String
+//  _html :: HtmlParserNode -> String
 const _html = _node => serializer(_node, {});
 
 //# html :: Node -> String
-const html = exports.html =
+//.
+//. TK.
+//.
+//. ```javascript
+//. > 'TK'
+//. 'TK'
+//. ```
+exports.html =
 def('html',
     {},
     [$Node, $.String],
     node => _html(node.value));
 
-//    _text :: HtmlParserNode -> String
+//  _text :: HtmlParserNode -> String
 const _text = function _text(_node) {
-  //  TODO: Handle all possible NodeType values.
   switch (_node.type) {
-    case 'text':
-      return _node.data;
-    case 'tag':
+    case domelementtype.CDATA:      // <![CDATA[ ... ]]>
+      return 'TK';
+    case domelementtype.Comment:    // <!-- ... -->
+      return 'TK';
+    case domelementtype.Directive:  // <? ... ?>
+      return 'TK';
+    case domelementtype.Doctype:
+      return 'TK';
+    case domelementtype.Script:     // <script></script>
+      return 'TK';
+    case domelementtype.Style:      // <style></style>
+      return 'TK';
+    case domelementtype.Tag:
       return R.join('', R.map(_text, _node.children));
-    default:
-      throw new TypeError('Unexpected type ‘' + _node.type + '’');
+    case domelementtype.Text:
+      return _node.data;
   }
 };
 
 //# text :: Node -> String
-const text = exports.text =
+//.
+//. TK.
+//.
+//. ```javascript
+//. > 'TK'
+//. 'TK'
+//. ```
+exports.text =
 def('text',
     {},
     [$Node, $.String],
     node => _text(node.value));
 
 //# find :: String -> Node -> [Node]
+//.
+//. TK.
+//.
+//. ```javascript
+//. > 'TK'
+//. 'TK'
+//. ```
 exports.find =
 def('find',
     {},
@@ -123,91 +144,100 @@ def('find',
     (selector, node) => R.map(Node, select(selector, node.value, {})));
 
 //# attr :: String -> Node -> Maybe String
+//.
+//. TK.
+//.
+//. ```javascript
+//. > 'TK'
+//. 'TK'
+//. ```
 exports.attr =
 def('attr',
     {},
     [$.String, $Node, S.MaybeType($.String)],
     (key, node) => S.get(String, key, node.value.attribs));
 
-// TODO: See if we can do nice selector validation
+//  TODO: See if we can do nice selector validation
 //# is :: String -> Node -> Boolean
+//.
+//. TK.
+//.
+//. ```javascript
+//. > 'TK'
+//. 'TK'
+//. ```
 exports.is =
 def('is',
     {},
     [$.String, $Node, $.Boolean],
-    (selector, node) => {
-      return select.is(node.value, selector, {});
-    });
+    (selector, node) => select.is(node.value, selector, {}));
 
-// children :: Element -> [Node]
+//# children :: Element -> [Node]
+//.
+//. TK.
+//.
+//. ```javascript
+//. > 'TK'
+//. 'TK'
+//. ```
 exports.children =
 def('children',
     {},
     [$Element, $.Array($Node)],
     el => R.map(Node, el.value.children));
 
-// parent :: Node -> Maybe Element
+//# parent :: Node -> Maybe Element
+//.
+//. TK.
+//.
+//. ```javascript
+//. > 'TK'
+//. 'TK'
+//. ```
 exports.parent =
 def('parent',
     {},
     [$Node, S.MaybeType($Element)],
     S.compose(R.map(Node), S.gets(Object, ['value', 'parent'])));
 
-// _prev :: HtmlParserNode -> Maybe Element
+//  _prev :: HtmlParserNode -> Maybe Element
 const _prev =
 S.pipe([S.get(Object, 'prev'),
         R.chain(_node => $.EnumType(elementTypes).test(_node.type) ?
                            S.Just(Node(_node)) :
                            _prev(_node))]);
 
-// prev :: Element -> Maybe Element
+//# prev :: Element -> Maybe Element
+//.
+//. TK.
+//.
+//. ```javascript
+//. > 'TK'
+//. 'TK'
+//. ```
 exports.prev =
 def('prev',
     {},
     [$Element, S.MaybeType($Element)],
     S.compose(_prev, R.prop('value')));
 
-// _next :: HtmlParserNode -> Maybe Element
+//  _next :: HtmlParserNode -> Maybe Element
 const _next =
 S.pipe([S.get(Object, 'next'),
         R.chain(_node => $.EnumType(elementTypes).test(_node.type) ?
                            S.Just(Node(_node)) :
                            _next(_node))]);
 
-// next :: Element -> Maybe Element
+//# next :: Element -> Maybe Element
+//.
+//. TK.
+//.
+//. ```javascript
+//. > 'TK'
+//. 'TK'
+//. ```
 exports.next =
 def('next',
     {},
     [$Element, S.MaybeType($Element)],
     S.compose(_next, R.prop('value')));
-
-// { '_@@type': 'sanctuary-html/Node',
-//  toString: [Function],
-//  value:
-//   { type: 'tag',
-//     name: 'html',
-//     attribs: {},
-//     children: [ [Object], [Object], [Object], [Object], [Object] ],
-//     next:
-//      { data: '\n',
-//        type: 'text',
-//        next: null,
-//        prev: [Circular],
-//        parent: null },
-//     prev: null,
-//     parent: null } }
-// { '_@@type': 'sanctuary-html/Node',
-//  toString: [Function],
-//  value:
-//   { data: '\n',
-//     type: 'text',
-//     next: null,
-//     prev:
-//      { type: 'tag',
-//        name: 'html',
-//        attribs: {},
-//        children: [Object],
-//        next: [Circular],
-//        prev: null,
-//        parent: null },
-//     parent: null } }
