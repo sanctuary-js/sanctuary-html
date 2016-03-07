@@ -52,3 +52,38 @@ S.pipe([H.parse,
         R.map(R.filter(H.is('.smalltitle'))),
         console.log],
        input);
+
+S.pipe([H.parse,
+        S.head,
+        R.map(H.find('body')),
+        R.chain(S.head),
+        R.chain(H.parent),
+        console.log],
+       input);
+
+S.pipe([H.parse,
+        S.head,
+        R.map(H.find('body')),
+        R.chain(S.head),
+        R.chain(H.parent),
+        R.chain(H.parent),
+        console.log],
+       input);
+
+S.pipe([H.parse,
+        S.head,
+        R.map(H.find('#main-paragraph')),
+        R.chain(S.head),
+        R.chain(H.prev),
+        R.chain(H.prev),
+        console.log],
+       input);
+
+S.pipe([H.parse,
+        S.head,
+        R.map(H.find('#main-paragraph')),
+        R.chain(S.head),
+        R.chain(H.next),
+        R.chain(H.next),
+        console.log],
+       input);

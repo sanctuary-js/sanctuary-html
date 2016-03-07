@@ -146,6 +146,41 @@ def('children',
     [$Element, $.Array($Node)],
     el => R.map(Node, el.value.children));
 
+// parent :: Node -> Maybe Element
+exports.parent =
+def('parent',
+    {},
+    [$Node, S.MaybeType($Element)],
+    S.compose(R.map(Node), S.gets(Object, ['value', 'parent'])));
+
+// _prev :: HtmlParserNode -> Maybe Element
+const _prev =
+S.pipe([S.get(Object, 'prev'),
+        R.chain(_node => $.EnumType(elementTypes).test(_node.type) ?
+                           S.Just(Node(_node)) :
+                           _prev(_node))]);
+
+// prev :: Element -> Maybe Element
+exports.prev =
+def('prev',
+    {},
+    [$Element, S.MaybeType($Element)],
+    S.compose(_prev, R.prop('value')));
+
+// _next :: HtmlParserNode -> Maybe Element
+const _next =
+S.pipe([S.get(Object, 'next'),
+        R.chain(_node => $.EnumType(elementTypes).test(_node.type) ?
+                           S.Just(Node(_node)) :
+                           _next(_node))]);
+
+// next :: Element -> Maybe Element
+exports.next =
+def('next',
+    {},
+    [$Element, S.MaybeType($Element)],
+    S.compose(_next, R.prop('value')));
+
 // { '_@@type': 'sanctuary-html/Node',
 //  toString: [Function],
 //  value:
