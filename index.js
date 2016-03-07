@@ -31,15 +31,19 @@ const $Node = $.NullaryType(
   x => x != null && x['_@@type'] === 'sanctuary-html/Node'
 );
 
-//  $Element :: type
+//  $Element :: Type
 const $Element = $.NullaryType(
   'sanctuary-html/Element',
   R.both($Node.test,
          S.compose(ElementType.test, R.path(['value', 'type'])))
 );
 
+//  Direction :: Type
+const Direction = $.EnumType(['prev', 'next']);
+
 //  env :: [Type]
-const env = $.env.concat([S.EitherType, S.MaybeType, $Element, $Node]);
+const env =
+$.env.concat([S.EitherType, S.MaybeType, Direction, $Element, $Node]);
 
 //  def :: (String, StrMap [Type], [Type], Function) -> Function
 const def = $.create(true, env);
@@ -203,12 +207,17 @@ def('parent',
     [$Node, S.MaybeType($Element)],
     S.compose(R.map(Node), S.gets(Object, ['value', 'parent'])));
 
-//  _prev :: HtmlParserNode -> Maybe Element
-const _prev =
-S.pipe([S.get(Object, 'prev'),
-        R.chain(_node => ElementType.test(_node.type) ?
-                           S.Just(Node(_node)) :
-                           _prev(_node))]);
+//  adjacent :: Direction -> HtmlParserNode -> Maybe Element
+const adjacent =
+def('adjacent',
+    {},
+    [Direction, $.Any, S.MaybeType($Element)],
+    function adjacent(direction, _node) {
+      return R.chain(_node => ElementType.test(_node.type) ?
+                                S.Just(Node(_node)) :
+                                adjacent(direction, _node),
+                     S.get(Object, direction, _node));
+    });
 
 //# prev :: Element -> Maybe Element
 //.
@@ -222,14 +231,7 @@ exports.prev =
 def('prev',
     {},
     [$Element, S.MaybeType($Element)],
-    S.compose(_prev, R.prop('value')));
-
-//  _next :: HtmlParserNode -> Maybe Element
-const _next =
-S.pipe([S.get(Object, 'next'),
-        R.chain(_node => $.EnumType(elementTypes).test(_node.type) ?
-                           S.Just(Node(_node)) :
-                           _next(_node))]);
+    S.compose(adjacent('prev'), R.prop('value')));
 
 //# next :: Element -> Maybe Element
 //.
@@ -243,4 +245,4 @@ exports.next =
 def('next',
     {},
     [$Element, S.MaybeType($Element)],
-    S.compose(_next, R.prop('value')));
+    S.compose(adjacent('next'), R.prop('value')));
