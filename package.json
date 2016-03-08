@@ -24,5 +24,10 @@
     "transcribe": "0.4.x",
     "xyz": "0.5.x"
   },
-  "files": []
+  "files": [
+    "/LICENSE",
+    "/README.md",
+    "/index.js",
+    "/package.json"
+  ]
 }
