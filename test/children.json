@@ -1,0 +1,51 @@
+[
+  {
+    "data": "\n      ",
+    "type": "text"
+  },
+  {
+    "attribs": {},
+    "children": [
+      {
+        "data": "Item A",
+        "type": "text"
+      }
+    ],
+    "name": "li",
+    "type": "tag"
+  },
+  {
+    "data": "\n      ",
+    "type": "text"
+  },
+  {
+    "attribs": {},
+    "children": [
+      {
+        "data": "Item B",
+        "type": "text"
+      }
+    ],
+    "name": "li",
+    "type": "tag"
+  },
+  {
+    "data": "\n      ",
+    "type": "text"
+  },
+  {
+    "attribs": {},
+    "children": [
+      {
+        "data": "Item C",
+        "type": "text"
+      }
+    ],
+    "name": "li",
+    "type": "tag"
+  },
+  {
+    "data": "\n    ",
+    "type": "text"
+  }
+]
