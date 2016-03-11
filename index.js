@@ -58,7 +58,8 @@ def('Node',
     [$.Any, $Node],
     _node => ({
       '_@@type': 'sanctuary-html/Node',
-      equals: _other => $Node.test(_other) && String(_other) === String(_node),
+      equals: other => $Node.test(other) &&
+              _html(other.value) === _html(_node),
       toString: () => 'Node(' + R.toString(_html(_node)) + ')',
       value: _node,
     }));
@@ -276,6 +277,7 @@ module.exports = {
   html: html,
   is: is,
   next: next,
+  Node: Node,
   parent: parent,
   parse: parse,
   prev: prev,
