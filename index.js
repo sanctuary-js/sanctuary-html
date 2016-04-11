@@ -32,7 +32,7 @@ const ElementType = $.EnumType(elementTypes);
 //  $Node :: Type
 const $Node = $.NullaryType(
   'sanctuary-html/Node',
-  x => x != null && x['_@@type'] === 'sanctuary-html/Node'
+  S.compose(R.equals('sanctuary-html/Node'), S.type)
 );
 
 //  $Element :: Type
@@ -54,7 +54,7 @@ def('Node',
     {},
     [$.Any, $Node],
     _node => ({
-      '_@@type': 'sanctuary-html/Node',
+      '@@type': 'sanctuary-html/Node',
       equals: _other => $Node.test(_other) && String(_other) === String(_node),
       toString: () => 'Node(' + R.toString(_html(_node)) + ')',
       value: _node,
