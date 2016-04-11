@@ -15,7 +15,7 @@
     "htmlparser2": "3.9.x",
     "ramda": "0.19.x",
     "sanctuary": "0.9.x",
-    "sanctuary-def": "0.4.x"
+    "sanctuary-def": "0.5.x"
   },
   "devDependencies": {
     "doctest": "0.10.x",

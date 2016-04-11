@@ -45,11 +45,8 @@ const $Element = $.NullaryType(
 //  Direction :: Type
 const Direction = $.EnumType(['prev', 'next']);
 
-//  env :: [Type]
-const env = $.env.concat([$Maybe, Direction, $Element, $Node]);
-
 //  def :: (String, StrMap [Type], [Type], Function) -> Function
-const def = $.create(true, env);
+const def = $.create(true, $.env);
 
 //  Node :: HtmlParserNode -> Node
 const Node =
