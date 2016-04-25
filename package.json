@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/plaid/sanctuary-html.git"
+    "url": "git://github.com/sanctuary-js/sanctuary-html.git"
   },
   "scripts": {},
   "dependencies": {
