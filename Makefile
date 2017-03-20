@@ -2,6 +2,7 @@ DOCTEST = node_modules/.bin/doctest --nodejs '--harmony' --module commonjs --pre
 JSCS = node_modules/.bin/jscs
 JSHINT = node_modules/.bin/jshint
 NPM = npm
+REMARK = node_modules/.bin/remark --frail --no-stdout
 TRANSCRIBE = node_modules/.bin/transcribe
 XYZ = node_modules/.bin/xyz --repo git@github.com:sanctuary-js/sanctuary-html.git --script scripts/prepublish
 
@@ -27,13 +28,13 @@ README.md: index.js
 lint:
 	$(JSHINT) -- index.js test/index.js
 	$(JSCS) -- index.js test/index.js
-	@echo 'Checking for missing link definitions...'
-	grep -o '\[[^]]*\]\[[^]]*\]' index.js \
-	| sort -u \
-	| sed -e 's:\[\(.*\)\]\[\]:\1:' \
-	      -e 's:\[.*\]\[\(.*\)\]:\1:' \
-	      -e '/0-9/d' \
-	| xargs -I '{}' sh -c "grep '^//[.] \[{}\]: ' index.js"
+	rm -f README.md
+	VERSION=0.0.0 make README.md
+	$(REMARK) \
+	  --use remark-lint-no-undefined-references \
+	  --use remark-lint-no-unused-definitions \
+	  -- README.md
+	git checkout README.md
 
 
 .PHONY: release-major release-minor release-patch
