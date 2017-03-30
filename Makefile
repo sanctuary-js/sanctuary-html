@@ -1,6 +1,5 @@
 DOCTEST = node_modules/.bin/doctest --nodejs '--harmony' --module commonjs --prefix .
-JSCS = node_modules/.bin/jscs
-JSHINT = node_modules/.bin/jshint
+ESLINT = node_modules/.bin/eslint --config node_modules/sanctuary-style/eslint-es6.json --env es6 --env node
 NPM = npm
 REMARK = node_modules/.bin/remark --frail --no-stdout
 TRANSCRIBE = node_modules/.bin/transcribe
@@ -26,8 +25,11 @@ README.md: index.js
 
 .PHONY: lint
 lint:
-	$(JSHINT) -- index.js test/index.js
-	$(JSCS) -- index.js test/index.js
+	$(ESLINT) \
+	  --rule 'max-len: [error, {code: 79, ignoreUrls: true, ignorePattern: "^//[#.] "}]' \
+	  -- index.js
+	$(ESLINT) \
+	  -- test/index.js
 	rm -f README.md
 	VERSION=0.0.0 make README.md
 	$(REMARK) \

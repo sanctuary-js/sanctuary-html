@@ -16,7 +16,7 @@ const $                 = require('sanctuary-def');
 
 const $Maybe            = S.MaybeType;
 const Just              = S.Just;
-const Nothing           = S.Nothing;  // jshint ignore:line
+const Nothing           = S.Nothing;  // eslint-disable-line no-unused-vars
 
 
 //  elementTypes :: [String]
@@ -56,7 +56,7 @@ def('Node',
     _node => ({
       '@@type': 'sanctuary-html/Node',
       equals: _other => $Node.test(_other) && String(_other) === String(_node),
-      toString: () => 'Node(' + R.toString(_html(_node)) + ')',
+      toString: () => `Node(${R.toString(_html(_node))})`,
       value: _node,
     }));
 
@@ -104,7 +104,7 @@ def('html',
     node => _html(node.value));
 
 //  _text :: HtmlParserNode -> String
-const _text = function _text(_node) {
+function _text(_node) {
   switch (_node.type) {
     case domelementtype.CDATA:      // <![CDATA[ ... ]]>
       return 'TK';
@@ -123,7 +123,7 @@ const _text = function _text(_node) {
     case domelementtype.Text:
       return _node.data;
   }
-};
+}
 
 //# text :: Node -> String
 //.
