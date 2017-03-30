@@ -1,4 +1,4 @@
-DOCTEST = node_modules/.bin/doctest --nodejs '--harmony' --module commonjs --prefix .
+DOCTEST = node_modules/.bin/doctest --module commonjs --prefix .
 ESLINT = node_modules/.bin/eslint --config node_modules/sanctuary-style/eslint-es6.json --env es6 --env node
 NPM = npm
 REMARK = node_modules/.bin/remark --frail --no-stdout
