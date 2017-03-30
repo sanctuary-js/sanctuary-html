@@ -19,7 +19,7 @@ const Just              = S.Just;
 const Nothing           = S.Nothing;  // eslint-disable-line no-unused-vars
 
 
-//  elementTypes :: [String]
+//  elementTypes :: Array String
 const elementTypes = [
   domelementtype.Script,
   domelementtype.Style,
@@ -45,7 +45,7 @@ const $Element = $.NullaryType(
 //  Direction :: Type
 const Direction = $.EnumType(['prev', 'next']);
 
-//  def :: (String, StrMap [Type], [Type], Function) -> Function
+//  def :: (String, StrMap (Array TypeClass), Array Type, Function) -> Function
 const def = $.create(true, $.env);
 
 //  Node :: HtmlParserNode -> Node
@@ -60,7 +60,7 @@ def('Node',
       value: _node,
     }));
 
-//# parse :: String -> [Node]
+//# parse :: String -> Array Node
 //.
 //. TK.
 //.
@@ -142,7 +142,7 @@ def('text',
     [$Node, $.String],
     node => _text(node.value));
 
-//# find :: String -> Node -> [Node]
+//# find :: String -> Node -> Array Node
 //.
 //. TK.
 //.
@@ -188,7 +188,7 @@ def('is',
     [$.String, $Node, $.Boolean],
     (selector, node) => select.is(node.value, selector, {}));
 
-//# children :: Element -> [Node]
+//# children :: Element -> Array Node
 //.
 //. TK.
 //.
