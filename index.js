@@ -19,6 +19,9 @@ const Just              = S.Just;
 const Nothing           = S.Nothing;  // eslint-disable-line no-unused-vars
 
 
+//  H :: Module
+const H = module.exports;
+
 //  elementTypes :: Array String
 const elementTypes = [
   domelementtype.Script,
@@ -65,10 +68,10 @@ def('Node',
 //. TK.
 //.
 //. ```javascript
-//. > R.toString(parse('<ul><li>one</li><li>two</li></ul>'))
+//. > R.toString(H.parse('<ul><li>one</li><li>two</li></ul>'))
 //. '[Node("<ul><li>one</li><li>two</li></ul>")]'
 //. ```
-const parse =
+H.parse =
 def('parse',
     {},
     [$.String, $.Array($Node)],
@@ -94,10 +97,10 @@ const _html = _node => serializer(_node, {});
 //. TK.
 //.
 //. ```javascript
-//. > R.map(html, parse('<ul><li>one</li><li>two</li></ul>'))
+//. > R.map(H.html, H.parse('<ul><li>one</li><li>two</li></ul>'))
 //. ['<ul><li>one</li><li>two</li></ul>']
 //. ```
-const html =
+H.html =
 def('html',
     {},
     [$Node, $.String],
@@ -130,13 +133,13 @@ function _text(_node) {
 //. TK.
 //.
 //. ```javascript
-//. > R.map(text, parse('<ul><li>one</li><li>two</li></ul>'))
+//. > R.map(H.text, H.parse('<ul><li>one</li><li>two</li></ul>'))
 //. ['onetwo']
 //.
-//. > R.map(text, R.chain(children, parse('<ul><li>one</li><li>two</li></ul>')))
+//. > R.map(H.text, R.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>')))
 //. ['one', 'two']
 //. ```
-const text =
+H.text =
 def('text',
     {},
     [$Node, $.String],
@@ -147,13 +150,13 @@ def('text',
 //. TK.
 //.
 //. ```javascript
-//. > R.toString(R.chain(find('li'), parse('<ul><li>one</li><li>two</li></ul>')))
+//. > R.toString(R.chain(H.find('li'), H.parse('<ul><li>one</li><li>two</li></ul>')))
 //. '[Node("<li>one</li>"), Node("<li>two</li>")]'
 //.
-//. > R.toString(R.chain(find('dl'), parse('<ul><li>one</li><li>two</li></ul>')))
+//. > R.toString(R.chain(H.find('dl'), H.parse('<ul><li>one</li><li>two</li></ul>')))
 //. '[]'
 //. ```
-const find =
+H.find =
 def('find',
     {},
     [$.String, $Node, $.Array($Node)],
@@ -164,10 +167,10 @@ def('find',
 //. TK.
 //.
 //. ```javascript
-//. > R.toString(R.map(attr('class'), parse('<div class="selected"></div><div></div>')))
+//. > R.toString(R.map(H.attr('class'), H.parse('<div class="selected"></div><div></div>')))
 //. '[Just("selected"), Nothing()]'
 //. ```
-const attr =
+H.attr =
 def('attr',
     {},
     [$.String, $Node, $Maybe($.String)],
@@ -179,10 +182,10 @@ def('attr',
 //. TK.
 //.
 //. ```javascript
-//. > R.map(is('.selected'), parse('<li class="selected">one</li><li>two</li><li>three</li>'))
+//. > R.map(H.is('.selected'), H.parse('<li class="selected">one</li><li>two</li><li>three</li>'))
 //. [true, false, false]
 //. ```
-const is =
+H.is =
 def('is',
     {},
     [$.String, $Node, $.Boolean],
@@ -193,10 +196,10 @@ def('is',
 //. TK.
 //.
 //. ```javascript
-//. > R.toString(R.chain(children, parse('<ul><li>one</li><li>two</li></ul>')))
+//. > R.toString(R.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>')))
 //. '[Node("<li>one</li>"), Node("<li>two</li>")]'
 //. ```
-const children =
+H.children =
 def('children',
     {},
     [$Element, $.Array($Node)],
@@ -207,13 +210,13 @@ def('children',
 //. TK.
 //.
 //. ```javascript
-//. > R.toString(R.map(parent, R.chain(children, parse('<ul><li>one</li><li>two</li></ul>'))))
+//. > R.toString(R.map(H.parent, R.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>'))))
 //. '[Just(Node("<ul><li>one</li><li>two</li></ul>")), Just(Node("<ul><li>one</li><li>two</li></ul>"))]'
 //.
-//. > R.map(parent, parse('<ul></ul>'))
+//. > R.map(H.parent, H.parse('<ul></ul>'))
 //. [Nothing()]
 //. ```
-const parent =
+H.parent =
 def('parent',
     {},
     [$Node, $Maybe($Element)],
@@ -236,13 +239,13 @@ def('adjacent',
 //. TK.
 //.
 //. ```javascript
-//. > S.pipe([parse, R.chain(find('li')), S.last, R.chain(prev), R.map(text)], '<ul><li>one</li><li>two</li></ul>')
+//. > S.pipe([H.parse, R.chain(H.find('li')), S.last, R.chain(H.prev), R.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
 //. Just('one')
 //.
-//. > S.pipe([parse, R.chain(find('li')), S.head, R.chain(prev), R.map(text)], '<ul><li>one</li><li>two</li></ul>')
+//. > S.pipe([H.parse, R.chain(H.find('li')), S.head, R.chain(H.prev), R.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
 //. Nothing()
 //. ```
-const prev =
+H.prev =
 def('prev',
     {},
     [$Element, $Maybe($Element)],
@@ -253,28 +256,14 @@ def('prev',
 //. TK.
 //.
 //. ```javascript
-//. > S.pipe([parse, R.chain(find('li')), S.head, R.chain(next), R.map(text)], '<ul><li>one</li><li>two</li></ul>')
+//. > S.pipe([H.parse, R.chain(H.find('li')), S.head, R.chain(H.next), R.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
 //. Just('two')
 //.
-//. > S.pipe([parse, R.chain(find('li')), S.last, R.chain(next), R.map(text)], '<ul><li>one</li><li>two</li></ul>')
+//. > S.pipe([H.parse, R.chain(H.find('li')), S.last, R.chain(H.next), R.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
 //. Nothing()
 //. ```
-const next =
+H.next =
 def('next',
     {},
     [$Element, $Maybe($Element)],
     S.compose(adjacent('next'), R.prop('value')));
-
-
-module.exports = {
-  attr: attr,
-  children: children,
-  find: find,
-  html: html,
-  is: is,
-  next: next,
-  parent: parent,
-  parse: parse,
-  prev: prev,
-  text: text,
-};
