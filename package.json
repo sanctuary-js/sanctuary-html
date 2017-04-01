@@ -24,7 +24,7 @@
     "remark-lint-no-unused-definitions": "1.x.x",
     "sanctuary-style": "0.4.x",
     "transcribe": "1.0.x",
-    "xyz": "0.5.x"
+    "xyz": "2.1.x"
   },
   "files": [
     "/LICENSE",
