@@ -4,10 +4,4 @@ dependencies:
 
 machine:
   node:
-    version: 4.2.2
-
-test:
-  override:
-    - make lint
-    - make test
-    - nvm use 5 && rm -r node_modules && make setup test
+    version: 6

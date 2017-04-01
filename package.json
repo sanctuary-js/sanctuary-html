@@ -7,7 +7,12 @@
     "type": "git",
     "url": "git://github.com/sanctuary-js/sanctuary-html.git"
   },
-  "scripts": {},
+  "scripts": {
+    "test": "make lint test"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "dependencies": {
     "css-select": "1.2.x",
     "dom-serializer": "0.1.x",
