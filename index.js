@@ -10,7 +10,6 @@ const select            = require('css-select');
 const serializer        = require('dom-serializer');
 const domelementtype    = require('domelementtype');
 const htmlparser        = require('htmlparser2');
-const R                 = require('ramda');
 const S                 = require('sanctuary');
 const $                 = require('sanctuary-def');
 
@@ -29,27 +28,29 @@ const elementTypes = [
   domelementtype.Tag,
 ];
 
-//  ElementType :: Type
-const ElementType = $.EnumType(elementTypes);
+//  $ElementType :: Type
+const $ElementType = $.EnumType(
+  'sanctuary-html/ElementType',
+  'TK',
+  elementTypes
+);
 
 //  $Node :: Type
 const $Node = $.NullaryType(
   'sanctuary-html/Node',
-  S.compose(R.equals('sanctuary-html/Node'), S.type)
+  'TK',
+  S.compose(S.equals('sanctuary-html/Node'), S.type)
 );
 
 //  $Element :: Type
 const $Element = $.NullaryType(
   'sanctuary-html/Element',
-  R.both($Node.test,
-         S.compose(ElementType.test, R.path(['value', 'type'])))
+  'TK',
+  x => $.test([], $Node, x) && $.test([], $ElementType, x.value.type)
 );
 
-//  Direction :: Type
-const Direction = $.EnumType(['prev', 'next']);
-
 //  def :: (String, StrMap (Array TypeClass), Array Type, Function) -> Function
-const def = $.create(true, $.env);
+const def = $.create({checkTypes: false, env: $.env});
 
 //  Node :: HtmlParserNode -> Node
 const Node =
@@ -58,8 +59,9 @@ def('Node',
     [$.Any, $Node],
     _node => ({
       '@@type': 'sanctuary-html/Node',
-      equals: _other => $Node.test(_other) && String(_other) === String(_node),
-      toString: () => `Node(${R.toString(_html(_node))})`,
+      equals: _other => $.test([], $Node, _other) &&
+                        String(_other) === String(_node),
+      toString: () => `Node(${S.toString(_html(_node))})`,
       value: _node,
     }));
 
@@ -68,7 +70,7 @@ def('Node',
 //. TK.
 //.
 //. ```javascript
-//. > R.toString(H.parse('<ul><li>one</li><li>two</li></ul>'))
+//. > S.toString(H.parse('<ul><li>one</li><li>two</li></ul>'))
 //. '[Node("<ul><li>one</li><li>two</li></ul>")]'
 //. ```
 H.parse =
@@ -81,7 +83,7 @@ def('parse',
         if (err != null) {
           throw err;
         }
-        nodes = R.map(Node, dom);
+        nodes = S.map(Node, dom);
       });
       const parser = new htmlparser.Parser(handler);
       parser.write(s);
@@ -97,7 +99,7 @@ const _html = _node => serializer(_node, {});
 //. TK.
 //.
 //. ```javascript
-//. > R.map(H.html, H.parse('<ul><li>one</li><li>two</li></ul>'))
+//. > S.map(H.html, H.parse('<ul><li>one</li><li>two</li></ul>'))
 //. ['<ul><li>one</li><li>two</li></ul>']
 //. ```
 H.html =
@@ -122,7 +124,7 @@ function _text(_node) {
     case domelementtype.Style:      // <style></style>
       return 'TK';
     case domelementtype.Tag:
-      return R.join('', R.map(_text, _node.children));
+      return S.joinWith('', S.map(_text, _node.children));
     case domelementtype.Text:
       return _node.data;
   }
@@ -133,10 +135,10 @@ function _text(_node) {
 //. TK.
 //.
 //. ```javascript
-//. > R.map(H.text, H.parse('<ul><li>one</li><li>two</li></ul>'))
+//. > S.map(H.text, H.parse('<ul><li>one</li><li>two</li></ul>'))
 //. ['onetwo']
 //.
-//. > R.map(H.text, R.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>')))
+//. > S.map(H.text, S.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>')))
 //. ['one', 'two']
 //. ```
 H.text =
@@ -150,31 +152,31 @@ def('text',
 //. TK.
 //.
 //. ```javascript
-//. > R.toString(R.chain(H.find('li'), H.parse('<ul><li>one</li><li>two</li></ul>')))
+//. > S.toString(S.chain(H.find('li'), H.parse('<ul><li>one</li><li>two</li></ul>')))
 //. '[Node("<li>one</li>"), Node("<li>two</li>")]'
 //.
-//. > R.toString(R.chain(H.find('dl'), H.parse('<ul><li>one</li><li>two</li></ul>')))
+//. > S.toString(S.chain(H.find('dl'), H.parse('<ul><li>one</li><li>two</li></ul>')))
 //. '[]'
 //. ```
 H.find =
 def('find',
     {},
     [$.String, $Node, $.Array($Node)],
-    (selector, node) => R.map(Node, select(selector, node.value, {})));
+    (selector, node) => S.map(Node, select(selector, node.value, {})));
 
 //# attr :: String -> Node -> Maybe String
 //.
 //. TK.
 //.
 //. ```javascript
-//. > R.toString(R.map(H.attr('class'), H.parse('<div class="selected"></div><div></div>')))
-//. '[Just("selected"), Nothing()]'
+//. > S.toString(S.map(H.attr('class'), H.parse('<div class="selected"></div><div></div>')))
+//. '[Just("selected"), Nothing]'
 //. ```
 H.attr =
 def('attr',
     {},
     [$.String, $Node, $Maybe($.String)],
-    (key, node) => S.get(String, key, node.value.attribs));
+    (key, node) => S.get(S.is(String), key, node.value.attribs));
 
 //  TODO: See if we can do nice selector validation
 //# is :: String -> Node -> Boolean
@@ -182,7 +184,7 @@ def('attr',
 //. TK.
 //.
 //. ```javascript
-//. > R.map(H.is('.selected'), H.parse('<li class="selected">one</li><li>two</li><li>three</li>'))
+//. > S.map(H.is('.selected'), H.parse('<li class="selected">one</li><li>two</li><li>three</li>'))
 //. [true, false, false]
 //. ```
 H.is =
@@ -196,74 +198,72 @@ def('is',
 //. TK.
 //.
 //. ```javascript
-//. > R.toString(R.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>')))
+//. > S.toString(S.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>')))
 //. '[Node("<li>one</li>"), Node("<li>two</li>")]'
 //. ```
 H.children =
 def('children',
     {},
     [$Element, $.Array($Node)],
-    el => R.map(Node, el.value.children));
+    el => S.map(Node, el.value.children));
 
 //# parent :: Node -> Maybe Element
 //.
 //. TK.
 //.
 //. ```javascript
-//. > R.toString(R.map(H.parent, R.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>'))))
+//. > S.toString(S.map(H.parent, S.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>'))))
 //. '[Just(Node("<ul><li>one</li><li>two</li></ul>")), Just(Node("<ul><li>one</li><li>two</li></ul>"))]'
 //.
-//. > R.map(H.parent, H.parse('<ul></ul>'))
-//. [Nothing()]
+//. > S.map(H.parent, H.parse('<ul></ul>'))
+//. [Nothing]
 //. ```
 H.parent =
 def('parent',
     {},
     [$Node, $Maybe($Element)],
-    S.compose(R.map(Node), S.gets(Object, ['value', 'parent'])));
-
-//  adjacent :: Direction -> HtmlParserNode -> Maybe Element
-const adjacent =
-def('adjacent',
-    {},
-    [Direction, $.Any, $Maybe($Element)],
-    function adjacent(direction, _node) {
-      return R.chain(_node => ElementType.test(_node.type) ?
-                                Just(Node(_node)) :
-                                adjacent(direction, _node),
-                     S.get(Object, direction, _node));
-    });
+    S.compose(S.map(Node), S.gets(S.is(Object), ['value', 'parent'])));
 
 //# prev :: Element -> Maybe Element
 //.
 //. TK.
 //.
 //. ```javascript
-//. > S.pipe([H.parse, R.chain(H.find('li')), S.last, R.chain(H.prev), R.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
+//. > S.pipe([H.parse, S.chain(H.find('li')), S.last, S.chain(H.prev), S.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
 //. Just('one')
 //.
-//. > S.pipe([H.parse, R.chain(H.find('li')), S.head, R.chain(H.prev), R.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
-//. Nothing()
+//. > S.pipe([H.parse, S.chain(H.find('li')), S.head, S.chain(H.prev), S.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
+//. Nothing
 //. ```
 H.prev =
 def('prev',
     {},
     [$Element, $Maybe($Element)],
-    S.compose(adjacent('prev'), R.prop('value')));
+    el => {
+      for (let _node = el.value.prev; _node != null; _node = _node.prev) {
+        if ($.test([], $ElementType, _node.type)) return Just(Node(_node));
+      }
+      return Nothing;
+    });
 
 //# next :: Element -> Maybe Element
 //.
 //. TK.
 //.
 //. ```javascript
-//. > S.pipe([H.parse, R.chain(H.find('li')), S.head, R.chain(H.next), R.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
+//. > S.pipe([H.parse, S.chain(H.find('li')), S.head, S.chain(H.next), S.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
 //. Just('two')
 //.
-//. > S.pipe([H.parse, R.chain(H.find('li')), S.last, R.chain(H.next), R.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
-//. Nothing()
+//. > S.pipe([H.parse, S.chain(H.find('li')), S.last, S.chain(H.next), S.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
+//. Nothing
 //. ```
 H.next =
 def('next',
     {},
     [$Element, $Maybe($Element)],
-    S.compose(adjacent('next'), R.prop('value')));
+    el => {
+      for (let _node = el.value.next; _node != null; _node = _node.next) {
+        if ($.test([], $ElementType, _node.type)) return Just(Node(_node));
+      }
+      return Nothing;
+    });

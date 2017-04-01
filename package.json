@@ -11,14 +11,13 @@
   "dependencies": {
     "css-select": "1.2.x",
     "dom-serializer": "0.1.x",
-    "domelementtype": "^1.3.0",
+    "domelementtype": "1.3.x",
     "htmlparser2": "3.9.x",
-    "ramda": "0.19.x",
-    "sanctuary": "0.10.x",
-    "sanctuary-def": "0.5.x"
+    "sanctuary": "0.12.x",
+    "sanctuary-def": "0.9.x"
   },
   "devDependencies": {
-    "doctest": "0.10.x",
+    "doctest": "0.11.x",
     "eslint": "2.9.x",
     "remark-cli": "3.x.x",
     "remark-lint-no-undefined-references": "1.x.x",
