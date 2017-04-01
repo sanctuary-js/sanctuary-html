@@ -17,6 +17,9 @@ const $                 = require('sanctuary-def');
 //  H :: Module
 const H = module.exports;
 
+//  is :: Type -> a -> Boolean
+const is = $.test([]);
+
 //  elementTypes :: Array String
 const elementTypes = [
   domelementtype.Script,
@@ -42,7 +45,14 @@ const $Node = $.NullaryType(
 const $Element = $.NullaryType(
   'sanctuary-html/Element',
   'TK',
-  x => $.test([], $Node, x) && $.test([], $ElementType, x.value.type)
+  x => is($Node, x) && is($ElementType, x.value.type)
+);
+
+//  $Selector :: Type
+const $Selector = $.NullaryType(
+  'sanctuary-html/Selector',
+  'TK',
+  x => is($.String, x) && S.encase(select.compile, x).isJust
 );
 
 //  createOpts :: { checkTypes :: Boolean, env :: Array Type }
@@ -161,7 +171,7 @@ def('text',
     [$Node, $.String],
     node => _text(node.value));
 
-//# find :: String -> Node -> Array Node
+//# find :: Selector -> Node -> Array Node
 //.
 //. TK.
 //.
@@ -175,7 +185,7 @@ def('text',
 H.find =
 def('find',
     {},
-    [$.String, $Node, $.Array($Node)],
+    [$Selector, $Node, $.Array($Node)],
     (selector, node) => S.map(Node, select(selector, node.value, {})));
 
 //# attr :: String -> Node -> Maybe String
@@ -192,8 +202,7 @@ def('attr',
     [$.String, $Node, S.MaybeType($.String)],
     (key, node) => S.get(S.is(String), key, node.value.attribs));
 
-//  TODO: See if we can do nice selector validation
-//# is :: String -> Node -> Boolean
+//# is :: Selector -> Node -> Boolean
 //.
 //. TK.
 //.
@@ -204,7 +213,7 @@ def('attr',
 H.is =
 def('is',
     {},
-    [$.String, $Node, $.Boolean],
+    [$Selector, $Node, $.Boolean],
     (selector, node) => select.is(node.value, selector, {}));
 
 //# children :: Element -> Array Node
@@ -255,7 +264,7 @@ def('prev',
     [$Element, S.MaybeType($Element)],
     el => {
       for (let _node = el.value.prev; _node != null; _node = _node.prev) {
-        if ($.test([], $ElementType, _node.type)) return Just(Node(_node));
+        if (is($ElementType, _node.type)) return Just(Node(_node));
       }
       return Nothing;
     });
@@ -277,7 +286,7 @@ def('next',
     [$Element, S.MaybeType($Element)],
     el => {
       for (let _node = el.value.next; _node != null; _node = _node.next) {
-        if ($.test([], $ElementType, _node.type)) return Just(Node(_node));
+        if (is($ElementType, _node.type)) return Just(Node(_node));
       }
       return Nothing;
     });
