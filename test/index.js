@@ -15,9 +15,9 @@ const H = require('..');
 const nothing = S.Nothing;
 const just = S.Just;
 
-function eq(...args) {
-  assert.strictEqual(args.length, eq.length);
-  const [actual, expected] = args;
+function eq(actual, expected) {
+  // eslint-disable-next-line prefer-rest-params
+  assert.strictEqual(arguments.length, eq.length);
   assert.strictEqual(R.toString(actual), R.toString(expected));
 }
 
