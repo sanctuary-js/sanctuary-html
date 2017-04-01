@@ -1,5 +1,6 @@
 DOCTEST = node_modules/.bin/doctest --module commonjs --prefix .
 ESLINT = node_modules/.bin/eslint --config node_modules/sanctuary-style/eslint-es6.json --env es6 --env node
+ISTANBUL = node_modules/.bin/istanbul
 NPM = npm
 REMARK = node_modules/.bin/remark --frail --no-stdout
 TRANSCRIBE = node_modules/.bin/transcribe
@@ -51,4 +52,6 @@ setup:
 
 .PHONY: test
 test:
+	$(ISTANBUL) cover node_modules/.bin/_mocha -- --recursive
+	$(ISTANBUL) check-coverage --branches 100
 	$(DOCTEST) -- index.js

@@ -7,10 +7,18 @@ const fs = require('fs');
 const path = require('path');
 
 const R = require('ramda');
-const S = require('sanctuary');
-const $ = require('sanctuary-def');
+const {create, env} = require('sanctuary');
 
 const H = require('..');
+
+
+const createOpts = {checkTypes: true, env: env.concat([
+  H.ElementType,
+  H.NodeType,
+  H.SelectorType,
+])};
+
+const S = create(createOpts);
 
 const nothing = S.Nothing;
 const just = S.Just;
@@ -22,41 +30,49 @@ function eq(actual, expected) {
 }
 
 const GOOD_HTML = fs.readFileSync(path.join(__dirname, 'good.html'), 'utf8');
-const GOOD_OBJ  = require('./good.json');
 
-const def = $.create(true, $.env);
-
-//    stripCircular :: HtmlParserNode -> HtmlParserNode
-const stripCircular = def('stripCircular', {}, [$.Any, $.Any], _node =>
-S.pipe([R.omit(['next', 'parent', 'prev']),
-        R.ifElse(R.propSatisfies(R.isNil, 'children'),
-                 R.identity,
-                 R.over(R.lensProp('children'), R.map(stripCircular)))],
-       _node));
-
-//    stripNode :: Node -> HtmlParserNode
-const stripNode = S.compose(stripCircular, R.prop('value'));
+//    parseOne :: String -> Node !
+const parseOne = s => {
+  const nodes = H.parse(s);
+  assert.strictEqual(nodes.length, 1, 'parseOne: did not receive exactly one' +
+    ' html node');
+  return nodes[0];
+};
 
 describe('Node', () => {
+  const _node = {
+    data: 'foo',
+    type: 'text',
+    next: null,
+    prev: null,
+    parent: null,
+  };
+  const node = H.Node(_node);
+
   it('returns Node given htmlparser2 _node', () => {
-    const _node = {
-      name: '!doctype',
-      data: '!DOCTYPE html',
-      type: 'directive',
-      next: null,
-      prev: null,
-      parent: null,
-    };
     const node = H.Node(_node);
     eq(node.value, _node);
-    eq(node['_@@type'], 'sanctuary-html/Node');
-    eq(R.toString(node), 'Node("<!DOCTYPE html>")');
+    eq(S.type(node), 'sanctuary-html/Node');
+    eq(R.toString(node), 'Node("foo")');
     eq(R.equals(node, H.Node(_node)), true);
   });
 
-  // TODO: Test equals methods
-});
+  it('Node.equals returns true for equivalent nodes', () => {
+    const nodeOther = H.Node(R.clone(_node));
+    eq(S.equals(node, nodeOther), true);
+  });
 
+  it('Node.equals returns false non-equivalent nodes', () => {
+    const nodeOther = H.Node({
+      data: 'bar',
+      type: 'text',
+      next: null,
+      prev: null,
+      parent: null,
+    });
+    eq(S.equals(node, nodeOther), false);
+  });
+});
 
 describe('parse', () => {
   it('parse well formed html', () => {
@@ -74,129 +90,81 @@ describe('parse', () => {
     };
     eq(simpleNodes, [H.Node(simpleExpected)]);
     // Assert circular htmlparser2 object after stripping circular values.
-    const circularNodes = H.parse(GOOD_HTML);
-    eq(R.map(stripNode, circularNodes), GOOD_OBJ);
+    const htmlNodes = S.map(H.html, H.parse(GOOD_HTML));
+    eq(htmlNodes.length, 4);
+    eq(S.joinWith('', htmlNodes), GOOD_HTML);
   });
 });
 
 describe('attr', () => {
   it('returns value of attribute for given node #1', () => {
-    const node = S.pipe([H.parse,
-                         R.nth(0)],
-                        '<h1 class="bigtitle">My text</h1>');
+    const node = parseOne('<h1 class="bigtitle">My text</h1>');
     eq(H.attr('class', node), just('bigtitle'));
   });
   it('returns value of attribute for given node #2', () => {
-    const node = S.pipe([H.parse,
-                         R.nth(0)],
-                        '<p id="main-paragraph">What a great webpage!</p>');
+    const node = parseOne('<p id="main-paragraph">What a great webpage!</p>');
     eq(H.attr('id', node), just('main-paragraph'));
   });
+  it('returns value of attribute for given node with spaces', () => {
+    const node = parseOne('<h1 class="bigtitle foo">My text</h1>');
+    eq(H.attr('class', node), just('bigtitle foo'));
+  });
   it('returns value of arbitrary attribute', () => {
-    const node = S.pipe([H.parse,
-                         R.nth(0)],
-                        '<p myattribute="booyah">What a great webpage!</p>');
+    const node = parseOne('<p myattribute="booyah">What a great webpage!</p>');
     eq(H.attr('myattribute', node), just('booyah'));
   });
   it('returns Nothing if attribute does not exist', () => {
-    const node = S.pipe([H.parse,
-                         R.nth(0)],
-                        '<p id="main-paragraph">What a great webpage!</p>');
-    eq(H.attr('style', node), nothing());
+    const node = parseOne('<p id="main-paragraph">What a great webpage!</p>');
+    eq(H.attr('style', node), nothing);
   });
   it('returns empty string value for boolean attributes', () => {
-    const node = S.pipe([H.parse,
-                         R.nth(0)],
-                        '<input type="checkbox" checked>');
+    const node = parseOne('<input type="checkbox" checked>');
     eq(H.attr('checked', node), just(''));
   });
 });
 
 describe('html', () => {
+  // TK: Good candidate for table and/or property based tests.
   it('returns HTML of Node #1', () => {
     const html = S.pipe([H.parse,
-                         R.map(H.html),
-                         R.join(''),
-                        ],
+                         S.map(H.html),
+                         R.join('')],
                         GOOD_HTML);
     eq(html, GOOD_HTML);
   });
   it('returns HTML of Node #2', () => {
     const htmlString = '<p> My goodness! </p>';
-    const html = S.pipe([H.parse,
-                         R.nth(0),
-                         H.html,
-                        ],
-                        htmlString);
+    const html = H.html(parseOne(htmlString));
     eq(html, htmlString);
   });
 });
 
-// TODO
+// TK
 describe.skip('text', () => {});
 
 describe('is', () => {
   it('returns Boolean test of tag name', () => {
-    const node = S.pipe([H.parse, R.nth(0)], '<p> My goodness! </p>');
+    const node = parseOne('<p> My goodness! </p>');
     eq(H.is('p', node), true);
     eq(H.is('a', node), false);
-    eq(H.is('', node), false);
-  });
-  it('works with R.filter', () => {
-    const match = S.pipe([H.parse,
-                           R.filter(H.is('html')),
-                           R.nth(0),
-                          ],
-                          GOOD_HTML);
-    // Assert stripped HtmlParserNode object
-    eq(stripNode(match), require('./html_tag.json'));
-    // Assert html string
-    eq(H.html(match),
-       fs.readFileSync(path.join(__dirname, 'html_tag.html'), 'utf8'));
   });
 });
 
 describe('find', () => {
   it('finds unique matching node by id', () => {
-    const match = S.pipe([H.parse,
-                           R.filter(H.is('html')),
-                           R.nth(0),
-                           H.find('#main-paragraph'),
-                           R.nth(0),
-                          ],
-                          GOOD_HTML);
-    // Assert stripped HtmlParserNode object
-    eq(stripNode(match), {
-      attribs: {
-        id: 'main-paragraph',
-      },
-      children: [
-        {
-          data: 'What a wonderful webpage!',
-          type: 'text',
-        },
-      ],
-      name: 'p',
-      type: 'tag',
-    });
+    const matches = S.chain(H.find('#main-paragraph'), H.parse(GOOD_HTML));
     // Assert html string
-    eq(H.html(match), '<p id="main-paragraph">What a wonderful webpage!</p>');
+    eq(S.map(H.html, matches),
+       ['<p id="main-paragraph">What a wonderful webpage!</p>']);
   });
   it('finds multiple matches by attribute', () => {
-    const matches = S.pipe([H.parse,
-                            R.filter(H.is('html')),
-                            R.nth(0),
-                            H.find('[type=checkbox]'),
-                           ],
-                           GOOD_HTML);
-    // Assert stripped HtmlParserNode object
-    eq(R.map(stripNode, matches), require('./matches.json'));
+    const matches = S.chain(H.find('[type=checkbox]'), H.parse(GOOD_HTML));
     // Assert html string
     eq(
-      S.pipe([R.map(H.html), R.join('')], matches),
-      '<input type="checkbox" value="1" name="myCheckbox" checked>' +
-      '<input type="checkbox" value="2" name="myCheckbox" checked="checked">' +
-      '<input type="checkbox" value="3" name="myCheckbox">'
+      S.map(H.html, matches),
+      ['<input type="checkbox" value="1" name="myCheckbox" checked>',
+       '<input type="checkbox" value="2" name="myCheckbox" checked="checked">',
+       '<input type="checkbox" value="3" name="myCheckbox">']
     );
   });
 });
@@ -204,56 +172,41 @@ describe('find', () => {
 describe('children', () => {
   it('returns child nodes given parent node', () => {
     const children = S.pipe([H.parse,
-                             R.filter(H.is('html')),
-                             R.nth(0),
-                             H.find('ul'),
-                             R.nth(0),
-                             H.children,
-                            ],
+                             S.chain(H.find('ul')),
+                             S.chain(H.children)],
                             GOOD_HTML);
-    // Assert stripped HtmlParserNode object
-    eq(R.map(stripNode, children), require('./children.json'));
     // Assert html string
-    eq(S.pipe([R.map(H.html), R.join('')], children),
+    eq(children.length, 7);
+    eq(S.joinWith('', S.map(H.html, children)),
        fs.readFileSync(path.join(__dirname, 'children.html'), 'utf8'));
   });
-  it('returns empty array nodes given element with no children', () => {
-    const parent = S.pipe([H.parse,
-                           R.nth(0),
-                          ],
-                          '<p></p>');
-    // Assert stripped HtmlParserNode object
-    eq(S.pipe([H.children, R.map(stripNode)], parent), []);
-    // Assert html string
-    eq(S.pipe([H.children, R.map(H.html), R.join('')], parent), '');
+  it('returns empty array given element with no children', () => {
+    eq(H.children(parseOne('<p></p>')), []);
   });
 });
 
 describe('parent', () => {
   it('returns parent node given child node', () => {
-    const children = S.pipe([H.parse,
-                             R.filter(H.is('html')),
-                             R.nth(0),
-                             H.find('ul'),
-                             R.nth(0),
-                             H.children,
-                            ],
-                            GOOD_HTML);
-    const parents = R.map(H.parent, children);
+    const parents = S.pipe([H.parse,
+                            S.chain(H.find('ul')),
+                            S.chain(H.children),
+                            R.map(H.parent)],
+                           GOOD_HTML);
     // Assert parent of each child is expected parent
-    R.map(parent => {
-      eq(parent.isJust, true);
-      // Assert stripped HtmlParserNode object
-      eq(stripNode(parent.value), require('./ul_tag.json'));
+    parents.forEach(parent => {
       // Assert html string
-      eq(H.html(parent.value),
-         fs.readFileSync(path.join(__dirname, 'ul_tag.html'), 'utf8'));
-    }, parents);
+      eq(S.map(H.html, parent),
+         S.Just(fs.readFileSync(path.join(__dirname, 'ul_tag.html'), 'utf8')));
+    });
+  });
+  it('returns Nothing given one of top-level nodes', () => {
+    eq(S.map(H.parent, H.parse(GOOD_HTML)),
+       [nothing, nothing, nothing, nothing]);
   });
 });
 
-// TODO
+// TK
 describe.skip('next', () => {});
 
-// TODO
+// TK
 describe.skip('prev', () => {});
