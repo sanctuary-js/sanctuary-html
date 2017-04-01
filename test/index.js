@@ -4,6 +4,7 @@
 
 const assert = require('assert');
 const fs = require('fs');
+const path = require('path');
 
 const R = require('ramda');
 const S = require('sanctuary');
@@ -14,12 +15,13 @@ const H = require('..');
 const nothing = S.Nothing;
 const just = S.Just;
 
-const eq = function(actual, expected) {
-  assert.strictEqual(arguments.length, 2);
+function eq(...args) {
+  assert.strictEqual(args.length, eq.length);
+  const [actual, expected] = args;
   assert.strictEqual(R.toString(actual), R.toString(expected));
-};
+}
 
-const GOOD_HTML = fs.readFileSync(__dirname + '/good.html', 'utf8');
+const GOOD_HTML = fs.readFileSync(path.join(__dirname, 'good.html'), 'utf8');
 const GOOD_OBJ  = require('./good.json');
 
 const def = $.create(true, $.env);
@@ -43,7 +45,7 @@ describe('Node', () => {
       type: 'directive',
       next: null,
       prev: null,
-      parent: null
+      parent: null,
     };
     const node = H.Node(_node);
     eq(node.value, _node);
@@ -62,13 +64,13 @@ describe('parse', () => {
     const simple = '<html></html>';
     const simpleNodes = H.parse(simple);
     const simpleExpected = {
-      'attribs': {},
-      'children': [],
-      'name': 'html',
-      'next': null,
-      'parent': null,
-      'prev': null,
-      'type': 'tag',
+      attribs: {},
+      children: [],
+      name: 'html',
+      next: null,
+      parent: null,
+      prev: null,
+      type: 'tag',
     };
     eq(simpleNodes, [H.Node(simpleExpected)]);
     // Assert circular htmlparser2 object after stripping circular values.
@@ -149,7 +151,8 @@ describe('is', () => {
     // Assert stripped HtmlParserNode object
     eq(stripNode(match), require('./html_tag.json'));
     // Assert html string
-    eq(H.html(match), fs.readFileSync(__dirname + '/html_tag.html', 'utf8'));
+    eq(H.html(match),
+       fs.readFileSync(path.join(__dirname, 'html_tag.html'), 'utf8'));
   });
 });
 
@@ -171,7 +174,7 @@ describe('find', () => {
         {
           data: 'What a wonderful webpage!',
           type: 'text',
-        }
+        },
       ],
       name: 'p',
       type: 'tag',
@@ -212,7 +215,7 @@ describe('children', () => {
     eq(R.map(stripNode, children), require('./children.json'));
     // Assert html string
     eq(S.pipe([R.map(H.html), R.join('')], children),
-       fs.readFileSync(__dirname + '/children.html', 'utf8'));
+       fs.readFileSync(path.join(__dirname, 'children.html'), 'utf8'));
   });
   it('returns empty array nodes given element with no children', () => {
     const parent = S.pipe([H.parse,
@@ -244,7 +247,7 @@ describe('parent', () => {
       eq(stripNode(parent.value), require('./ul_tag.json'));
       // Assert html string
       eq(H.html(parent.value),
-         fs.readFileSync(__dirname + '/ul_tag.html', 'utf8'));
+         fs.readFileSync(path.join(__dirname, 'ul_tag.html'), 'utf8'));
     }, parents);
   });
 });
