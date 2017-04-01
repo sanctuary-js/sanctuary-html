@@ -10,12 +10,8 @@ const select            = require('css-select');
 const serializer        = require('dom-serializer');
 const domelementtype    = require('domelementtype');
 const htmlparser        = require('htmlparser2');
-const S                 = require('sanctuary');
+const {create, env}     = require('sanctuary');
 const $                 = require('sanctuary-def');
-
-const $Maybe            = S.MaybeType;
-const Just              = S.Just;
-const Nothing           = S.Nothing;  // eslint-disable-line no-unused-vars
 
 
 //  H :: Module
@@ -39,7 +35,7 @@ const $ElementType = $.EnumType(
 const $Node = $.NullaryType(
   'sanctuary-html/Node',
   'TK',
-  S.compose(S.equals('sanctuary-html/Node'), S.type)
+  x => S.type(x) === 'sanctuary-html/Node'
 );
 
 //  $Element :: Type
@@ -49,21 +45,39 @@ const $Element = $.NullaryType(
   x => $.test([], $Node, x) && $.test([], $ElementType, x.value.type)
 );
 
+//  createOpts :: { checkTypes :: Boolean, env :: Array Type }
+const createOpts = {
+  checkTypes: true,
+  env: env.concat([$Node, $Element]),
+};
+
+//  S :: Module
+const S = create(createOpts), {Nothing, Just} = S;
+
 //  def :: (String, StrMap (Array TypeClass), Array Type, Function) -> Function
-const def = $.create({checkTypes: false, env: $.env});
+const def = $.create(createOpts);
 
 //  Node :: HtmlParserNode -> Node
-const Node =
-def('Node',
-    {},
-    [$.Any, $Node],
-    _node => ({
-      '@@type': 'sanctuary-html/Node',
-      equals: _other => $.test([], $Node, _other) &&
-                        String(_other) === String(_node),
-      toString: () => `Node(${S.toString(_html(_node))})`,
-      value: _node,
-    }));
+function Node(_node) {
+  if (!(this instanceof Node)) return new Node(_node);
+  this.value = _node;
+}
+
+//  Node :: HtmlParserNode -> Node
+H.Node = def('Node', {}, [$.Any, $Node], Node);
+
+//  Node.@@type :: String
+Node['@@type'] = 'sanctuary-html/Node';
+
+//  Node#toString :: Node ~> () -> String
+Node.prototype.toString = function() {
+  return `Node(${S.toString(_html(this.value))})`;
+};
+
+//  Node#fantasy-land/equals :: Node ~> Node -> Boolean
+Node.prototype['fantasy-land/equals'] = function(other) {
+  return String(this) === String(other);
+};
 
 //# parse :: String -> Array Node
 //.
@@ -175,7 +189,7 @@ def('find',
 H.attr =
 def('attr',
     {},
-    [$.String, $Node, $Maybe($.String)],
+    [$.String, $Node, S.MaybeType($.String)],
     (key, node) => S.get(S.is(String), key, node.value.attribs));
 
 //  TODO: See if we can do nice selector validation
@@ -221,7 +235,7 @@ def('children',
 H.parent =
 def('parent',
     {},
-    [$Node, $Maybe($Element)],
+    [$Node, S.MaybeType($Element)],
     S.compose(S.map(Node), S.gets(S.is(Object), ['value', 'parent'])));
 
 //# prev :: Element -> Maybe Element
@@ -238,7 +252,7 @@ def('parent',
 H.prev =
 def('prev',
     {},
-    [$Element, $Maybe($Element)],
+    [$Element, S.MaybeType($Element)],
     el => {
       for (let _node = el.value.prev; _node != null; _node = _node.prev) {
         if ($.test([], $ElementType, _node.type)) return Just(Node(_node));
@@ -260,7 +274,7 @@ def('prev',
 H.next =
 def('next',
     {},
-    [$Element, $Maybe($Element)],
+    [$Element, S.MaybeType($Element)],
     el => {
       for (let _node = el.value.next; _node != null; _node = _node.next) {
         if ($.test([], $ElementType, _node.type)) return Just(Node(_node));
