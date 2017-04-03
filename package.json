@@ -23,13 +23,13 @@
   },
   "devDependencies": {
     "doctest": "0.11.x",
-    "eslint": "2.9.x",
+    "eslint": "3.19.x",
     "istanbul": "0.4.x",
     "mocha": "3.x.x",
     "remark-cli": "3.x.x",
     "remark-lint-no-undefined-references": "1.x.x",
     "remark-lint-no-unused-definitions": "1.x.x",
-    "sanctuary-style": "0.4.x",
+    "sanctuary-style": "0.5.x",
     "transcribe": "1.0.x",
     "xyz": "2.1.x"
   },

@@ -12,11 +12,10 @@ const {create, env} = require('sanctuary');
 const H = require('..');
 
 
-const createOpts = {checkTypes: true, env: env.concat([
-  H.ElementType,
-  H.NodeType,
-  H.SelectorType,
-])};
+const createOpts = {
+  checkTypes: true,
+  env: env.concat([H.ElementType, H.NodeType, H.SelectorType]),
+};
 
 const S = create(createOpts);
 
