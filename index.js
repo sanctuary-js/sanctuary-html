@@ -1,3 +1,13 @@
+
+     /* ,__,   ,__, /\
+    / / |  |   |  | \ \
+   / /  |  |   |  |  \ \
+  / /   |  '---'  |   \ \
+  \ \   |  ,---,  |   / /
+   \ \  |  |   |  |  / /  Composable and joyful
+    \ \ |__|   |__| / /  HTML document traversal
+     \/             */
+
 //. # sanctuary-html
 //.
 //. TK.
