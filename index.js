@@ -85,6 +85,10 @@ Node.prototype['fantasy-land/equals'] = function(other) {
   return String(this) === String(other);
 };
 
+//  XXX: Create alias for compatibility with R.equals. The correct fix is to
+//  have doctest use S.equals instead.
+Node.prototype.equals = Node.prototype['fantasy-land/equals'];
+
 //# parse :: String -> Array Node
 //.
 //. Parse an HTML string to produce an array of `Node` values. The algorithm is
@@ -182,14 +186,15 @@ def('text',
 
 //# find :: Selector -> Node -> Array Node
 //.
-//. TK.
+//. Returns the descendants of the given `Node` value which match the given
+//. `Selector` value.
 //.
 //. ```javascript
-//. > S.toString(S.chain(H.find('li'), H.parse('<ul><li>one</li><li>two</li></ul>')))
-//. '[Node("<li>one</li>"), Node("<li>two</li>")]'
+//. > S.chain(H.find('li'), H.parse('<ul><li>foo</li><li>bar</li></ul>'))
+//. H.parse('<li>foo</li><li>bar</li>')
 //.
-//. > S.toString(S.chain(H.find('dl'), H.parse('<ul><li>one</li><li>two</li></ul>')))
-//. '[]'
+//. > S.chain(H.find('ul'), H.parse('<ul><li>foo</li><li>bar</li></ul>'))
+//. []
 //. ```
 H.find =
 def('find',
