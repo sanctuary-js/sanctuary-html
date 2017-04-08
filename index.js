@@ -123,11 +123,17 @@ const _html = _node => serializer(_node, {});
 
 //# html :: Node -> String
 //.
-//. TK.
+//. Returns the HTML representation of the given `Node` value.
 //.
 //. ```javascript
-//. > S.map(H.html, H.parse('<ul><li>one</li><li>two</li></ul>'))
-//. ['<ul><li>one</li><li>two</li></ul>']
+//. > S.map(H.html, H.parse('<ul><li>foo</li><li>bar</li></ul>'))
+//. ['<ul><li>foo</li><li>bar</li></ul>']
+//.
+//. > S.map(H.html, H.parse('<li>foo</li><li>bar</li>'))
+//. ['<li>foo</li>', '<li>bar</li>']
+//.
+//. > S.map(H.html, H.parse('foo <b>bar</b> baz'))
+//. ['foo ', '<b>bar</b>', ' baz']
 //. ```
 H.html =
 def('html',
