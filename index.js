@@ -267,7 +267,7 @@ def('prev',
     [ElementType, S.MaybeType(ElementType)],
     el => {
       for (let _node = el.value.prev; _node != null; _node = _node.prev) {
-        if (domelementtype.isTag(_node.value)) return Just(Node(_node));
+        if (domelementtype.isTag(_node)) return Just(Node(_node));
       }
       return Nothing;
     });
@@ -289,7 +289,7 @@ def('next',
     [ElementType, S.MaybeType(ElementType)],
     el => {
       for (let _node = el.value.next; _node != null; _node = _node.next) {
-        if (domelementtype.isTag(_node.value)) return Just(Node(_node));
+        if (domelementtype.isTag(_node)) return Just(Node(_node));
       }
       return Nothing;
     });
