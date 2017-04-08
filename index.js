@@ -165,14 +165,14 @@ function _text(_node) {
 
 //# text :: Node -> String
 //.
-//. TK.
+//. Returns the text content of the given `Node` value.
 //.
 //. ```javascript
-//. > S.map(H.text, H.parse('<ul><li>one</li><li>two</li></ul>'))
-//. ['onetwo']
+//. > S.map(H.text, H.parse('<ul><li>foo</li><li>bar</li></ul>'))
+//. ['foobar']
 //.
-//. > S.map(H.text, S.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>')))
-//. ['one', 'two']
+//. > S.map(H.text, S.chain(H.children, H.parse('<ul><li>foo</li><li>bar</li></ul>')))
+//. ['foo', 'bar']
 //. ```
 H.text =
 def('text',
