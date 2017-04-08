@@ -87,11 +87,18 @@ Node.prototype['fantasy-land/equals'] = function(other) {
 
 //# parse :: String -> Array Node
 //.
-//. TK.
+//. Parse an HTML string to produce an array of `Node` values. The algorithm is
+//. very forgiving so this operation will succeed even when given invalid HTML.
 //.
 //. ```javascript
-//. > S.toString(H.parse('<ul><li>one</li><li>two</li></ul>'))
-//. '[Node("<ul><li>one</li><li>two</li></ul>")]'
+//. > S.toString(H.parse('<ul><li>foo</li><li>bar</li></ul>'))
+//. '[Node("<ul><li>foo</li><li>bar</li></ul>")]'
+//.
+//. > S.toString(H.parse('<li>foo</li><li>bar</li>'))
+//. '[Node("<li>foo</li>"), Node("<li>bar</li>")]'
+//.
+//. > S.toString(H.parse('foo <b>bar</b> baz'))
+//. '[Node("foo "), Node("<b>bar</b>"), Node(" baz")]'
 //. ```
 H.parse =
 def('parse',
