@@ -85,10 +85,6 @@ Node.prototype['fantasy-land/equals'] = function(other) {
   return String(this) === String(other);
 };
 
-//  XXX: Create alias for compatibility with R.equals. The correct fix is to
-//  have doctest use S.equals instead.
-Node.prototype.equals = Node.prototype['fantasy-land/equals'];
-
 //# parse :: String -> Array Node
 //.
 //. Parse an HTML string to produce an array of `Node` values. The algorithm is
