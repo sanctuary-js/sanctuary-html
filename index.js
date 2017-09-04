@@ -1,5 +1,6 @@
+'use strict';
 
-     /* ,__,   ,__, /\
+/*   /\ ,__,   ,__, /\
     / / |  |   |  | \ \
    / /  |  |   |  |  \ \
   / /   |  '---'  |   \ \
@@ -13,8 +14,6 @@
 //. TK.
 //.
 //. ## API
-
-'use strict';
 
 const select            = require('css-select');
 const serializer        = require('dom-serializer');

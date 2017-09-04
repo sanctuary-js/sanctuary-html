@@ -1,6 +1,7 @@
 dependencies:
   override:
-    - make setup
+    - npm install --global npm@3.x.x
+    - npm install
 
 machine:
   node:
