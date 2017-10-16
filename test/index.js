@@ -1,7 +1,5 @@
 'use strict';
 
-/* global describe, it */
-
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -23,7 +21,6 @@ const nothing = S.Nothing;
 const just = S.Just;
 
 function eq(actual, expected) {
-  // eslint-disable-next-line prefer-rest-params
   assert.strictEqual(arguments.length, eq.length);
   assert.strictEqual(R.toString(actual), R.toString(expected));
 }
@@ -38,7 +35,7 @@ const parseOne = s => {
   return nodes[0];
 };
 
-describe('Node', () => {
+suite('Node', () => {
   const _node = {
     data: 'foo',
     type: 'text',
@@ -48,7 +45,7 @@ describe('Node', () => {
   };
   const node = H.Node(_node);
 
-  it('returns Node given htmlparser2 _node', () => {
+  test('returns Node given htmlparser2 _node', () => {
     const node = H.Node(_node);
     eq(node.value, _node);
     eq(S.type(node), 'sanctuary-html/Node');
@@ -56,12 +53,12 @@ describe('Node', () => {
     eq(R.equals(node, H.Node(_node)), true);
   });
 
-  it('Node.equals returns true for equivalent nodes', () => {
+  test('Node.equals returns true for equivalent nodes', () => {
     const nodeOther = H.Node(R.clone(_node));
     eq(S.equals(node, nodeOther), true);
   });
 
-  it('Node.equals returns false non-equivalent nodes', () => {
+  test('Node.equals returns false non-equivalent nodes', () => {
     const nodeOther = H.Node({
       data: 'bar',
       type: 'text',
@@ -73,8 +70,8 @@ describe('Node', () => {
   });
 });
 
-describe('parse', () => {
-  it('parse well formed html', () => {
+suite('parse', () => {
+  test('parse well formed html', () => {
     // Assert non-circular htmlparser2 object
     const simple = '<html></html>';
     const simpleNodes = H.parse(simple);
@@ -95,43 +92,43 @@ describe('parse', () => {
   });
 });
 
-describe('attr', () => {
-  it('returns value of attribute for given node #1', () => {
+suite('attr', () => {
+  test('returns value of attribute for given node #1', () => {
     const node = parseOne('<h1 class="bigtitle">My text</h1>');
     eq(H.attr('class', node), just('bigtitle'));
   });
-  it('returns value of attribute for given node #2', () => {
+  test('returns value of attribute for given node #2', () => {
     const node = parseOne('<p id="main-paragraph">What a great webpage!</p>');
     eq(H.attr('id', node), just('main-paragraph'));
   });
-  it('returns value of attribute for given node with spaces', () => {
+  test('returns value of attribute for given node with spaces', () => {
     const node = parseOne('<h1 class="bigtitle foo">My text</h1>');
     eq(H.attr('class', node), just('bigtitle foo'));
   });
-  it('returns value of arbitrary attribute', () => {
+  test('returns value of arbitrary attribute', () => {
     const node = parseOne('<p myattribute="booyah">What a great webpage!</p>');
     eq(H.attr('myattribute', node), just('booyah'));
   });
-  it('returns Nothing if attribute does not exist', () => {
+  test('returns Nothing if attribute does not exist', () => {
     const node = parseOne('<p id="main-paragraph">What a great webpage!</p>');
     eq(H.attr('style', node), nothing);
   });
-  it('returns empty string value for boolean attributes', () => {
+  test('returns empty string value for boolean attributes', () => {
     const node = parseOne('<input type="checkbox" checked>');
     eq(H.attr('checked', node), just(''));
   });
 });
 
-describe('html', () => {
+suite('html', () => {
   // TK: Good candidate for table and/or property based tests.
-  it('returns HTML of Node #1', () => {
+  test('returns HTML of Node #1', () => {
     const html = S.pipe([H.parse,
                          S.map(H.html),
                          R.join('')],
                         GOOD_HTML);
     eq(html, GOOD_HTML);
   });
-  it('returns HTML of Node #2', () => {
+  test('returns HTML of Node #2', () => {
     const htmlString = '<p> My goodness! </p>';
     const html = H.html(parseOne(htmlString));
     eq(html, htmlString);
@@ -139,24 +136,24 @@ describe('html', () => {
 });
 
 // TK
-describe.skip('text', () => {});
+suite.skip('text', () => {});
 
-describe('is', () => {
-  it('returns Boolean test of tag name', () => {
+suite('is', () => {
+  test('returns Boolean test of tag name', () => {
     const node = parseOne('<p> My goodness! </p>');
     eq(H.is('p', node), true);
     eq(H.is('a', node), false);
   });
 });
 
-describe('find', () => {
-  it('finds unique matching node by id', () => {
+suite('find', () => {
+  test('finds unique matching node by id', () => {
     const matches = S.chain(H.find('#main-paragraph'), H.parse(GOOD_HTML));
     // Assert html string
     eq(S.map(H.html, matches),
        ['<p id="main-paragraph">What a wonderful webpage!</p>']);
   });
-  it('finds multiple matches by attribute', () => {
+  test('finds multiple matches by attribute', () => {
     const matches = S.chain(H.find('[type=checkbox]'), H.parse(GOOD_HTML));
     // Assert html string
     eq(
@@ -168,8 +165,8 @@ describe('find', () => {
   });
 });
 
-describe('children', () => {
-  it('returns child nodes given parent node', () => {
+suite('children', () => {
+  test('returns child nodes given parent node', () => {
     const children = S.pipe([H.parse,
                              S.chain(H.find('ul')),
                              S.chain(H.children)],
@@ -179,13 +176,13 @@ describe('children', () => {
     eq(S.joinWith('', S.map(H.html, children)),
        fs.readFileSync(path.join(__dirname, 'children.html'), 'utf8'));
   });
-  it('returns empty array given element with no children', () => {
+  test('returns empty array given element with no children', () => {
     eq(H.children(parseOne('<p></p>')), []);
   });
 });
 
-describe('parent', () => {
-  it('returns parent node given child node', () => {
+suite('parent', () => {
+  test('returns parent node given child node', () => {
     const parents = S.pipe([H.parse,
                             S.chain(H.find('ul')),
                             S.chain(H.children),
@@ -198,14 +195,14 @@ describe('parent', () => {
          S.Just(fs.readFileSync(path.join(__dirname, 'ul_tag.html'), 'utf8')));
     });
   });
-  it('returns Nothing given one of top-level nodes', () => {
+  test('returns Nothing given one of top-level nodes', () => {
     eq(S.map(H.parent, H.parse(GOOD_HTML)),
        [nothing, nothing, nothing, nothing]);
   });
 });
 
 // TK
-describe.skip('next', () => {});
+suite.skip('next', () => {});
 
 // TK
-describe.skip('prev', () => {});
+suite.skip('prev', () => {});
