@@ -1,0 +1,30 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/node:6
+        environment:
+          NPM_CONFIG_COLOR: false
+          NPM_CONFIG_LOGLEVEL: warn
+          NPM_CONFIG_PROGRESS: false
+    parallelism: 4
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: |
+            curl https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            test_with_version() {
+              nvm install $1
+              nvm exec $1 npm install
+              nvm exec $1 npm test
+            }
+            case $CIRCLE_NODE_INDEX in
+              0) npm install && npm test ;;
+              1) test_with_version 4 ;;
+              2) test_with_version 7 ;;
+              3) test_with_version 8 ;;
+            esac
