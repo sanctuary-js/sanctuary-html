@@ -15,7 +15,7 @@ jobs:
       - restore_cache:
           keys:
             - nvm-cache-{{ checksum ".circleci/config.yml" }}
-      - run: curl https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
+      - run: curl https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
       - save_cache:
           key: nvm-cache-{{ checksum ".circleci/config.yml" }}
           paths:
