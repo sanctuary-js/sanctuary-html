@@ -19,7 +19,7 @@ jobs:
       - save_cache:
           key: nvm-cache-{{ checksum ".circleci/config.yml" }}
           paths:
-            - ~/.nvm
+            - /home/circleci/.nvm
       - run:
           name: npm install && npm test
           command: |
