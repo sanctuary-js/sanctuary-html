@@ -4,6 +4,15 @@
   "env": {"node": true},
   "overrides": [
     {
+      "files": ["*.md"],
+      "plugins": ["markdown"],
+      "globals": {"H": false, "Just": false, "Nothing": false, "S": false},
+      "rules": {
+        "max-len": ["off"],
+        "strict": ["off"]
+      }
+    },
+    {
       "files": ["index.js"],
       "rules": {
         "max-len": ["error", {"code": 79, "ignoreUrls": true, "ignorePattern": "^//(# |[.] [>'])"}]
