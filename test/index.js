@@ -14,9 +14,14 @@ const S = create ({
   env: env.concat ([H.ElementType, H.NodeType, H.SelectorType]),
 });
 
-function eq(actual, expected) {
+//    eq :: a -> b -> Undefined !
+function eq(actual) {
   assert.strictEqual (arguments.length, eq.length);
-  assert.strictEqual (S.toString (actual), S.toString (expected));
+  return function eq$1(expected) {
+    assert.strictEqual (arguments.length, eq$1.length);
+    assert.strictEqual (S.toString (actual), S.toString (expected));
+    assert.strictEqual (S.equals (actual, expected), true);
+  };
 }
 
 const GOOD_HTML = fs.readFileSync (path.join (__dirname, 'good.html'), 'utf8');
@@ -44,17 +49,17 @@ suite ('Node', () => {
 
   test ('returns Node given htmlparser2 _node', () => {
     const node = H.Node (_node);
-    eq (node.value, _node);
-    eq (S.type (node),
-        {namespace: S.Just ('sanctuary-html'), name: 'Node', version: 0});
-    eq (S.toString (node), 'Node ("foo")');
-    eq (S.equals (node, H.Node (_node)), true);
+    eq (node.value) (_node);
+    eq (S.type (node))
+       ({namespace: S.Just ('sanctuary-html'), name: 'Node', version: 0});
+    eq (S.toString (node)) ('Node ("foo")');
+    eq (S.equals (node, H.Node (_node))) (true);
   });
 
   test ('Node.equals returns true for equivalent nodes', () => {
     eq (S.equals (H.Node ({data: 'foo', type: 'text', next: null, prev: null, parent: null}))
-                 (H.Node ({data: 'foo', type: 'text', next: null, prev: null, parent: null})),
-        true);
+                 (H.Node ({data: 'foo', type: 'text', next: null, prev: null, parent: null})))
+       (true);
   });
 
   test ('Node.equals returns false non-equivalent nodes', () => {
@@ -65,7 +70,7 @@ suite ('Node', () => {
       prev: null,
       parent: null,
     });
-    eq (S.equals (node, nodeOther), false);
+    eq (S.equals (node) (nodeOther)) (false);
   });
 });
 
@@ -83,49 +88,49 @@ suite ('parse', () => {
       prev: null,
       type: 'tag',
     };
-    eq (simpleNodes, [H.Node (simpleExpected)]);
+    eq (simpleNodes) ([H.Node (simpleExpected)]);
     // Assert circular htmlparser2 object after stripping circular values.
     const htmlNodes = S.map (H.html, H.parse (GOOD_HTML));
-    eq (htmlNodes.length, 4);
-    eq (S.joinWith ('', htmlNodes), GOOD_HTML);
+    eq (htmlNodes.length) (4);
+    eq (S.joinWith ('') (htmlNodes)) (GOOD_HTML);
   });
 });
 
 suite ('attr', () => {
   test ('returns value of attribute for given node #1', () => {
     const node = parseOne ('<h1 class="bigtitle">My text</h1>');
-    eq (H.attr ('class') (node), S.Just ('bigtitle'));
+    eq (H.attr ('class') (node)) (S.Just ('bigtitle'));
   });
   test ('returns value of attribute for given node #2', () => {
     const node = parseOne ('<p id="main-paragraph">What a great webpage!</p>');
-    eq (H.attr ('id') (node), S.Just ('main-paragraph'));
+    eq (H.attr ('id') (node)) (S.Just ('main-paragraph'));
   });
   test ('returns value of attribute for given node with spaces', () => {
     const node = parseOne ('<h1 class="bigtitle foo">My text</h1>');
-    eq (H.attr ('class') (node), S.Just ('bigtitle foo'));
+    eq (H.attr ('class') (node)) (S.Just ('bigtitle foo'));
   });
   test ('returns value of arbitrary attribute', () => {
     const node = parseOne ('<p myattribute="booyah">What a great webpage!</p>');
-    eq (H.attr ('myattribute') (node), S.Just ('booyah'));
+    eq (H.attr ('myattribute') (node)) (S.Just ('booyah'));
   });
   test ('returns Nothing if attribute does not exist', () => {
     const node = parseOne ('<p id="main-paragraph">What a great webpage!</p>');
-    eq (H.attr ('style') (node), S.Nothing);
+    eq (H.attr ('style') (node)) (S.Nothing);
   });
   test ('returns empty string value for boolean attributes', () => {
     const node = parseOne ('<input type="checkbox" checked>');
-    eq (H.attr ('checked') (node), S.Just (''));
+    eq (H.attr ('checked') (node)) (S.Just (''));
   });
 });
 
 suite ('html', () => {
   // TK: Good candidate for table and/or property based tests.
   test ('returns HTML of Node #1', () => {
-    eq (S.joinWith ('') (S.map (H.html) (H.parse (GOOD_HTML))), GOOD_HTML);
+    eq (S.joinWith ('') (S.map (H.html) (H.parse (GOOD_HTML)))) (GOOD_HTML);
   });
   test ('returns HTML of Node #2', () => {
     const htmlString = '<p> My goodness! </p>';
-    eq (H.html (parseOne (htmlString)), htmlString);
+    eq (H.html (parseOne (htmlString))) (htmlString);
   });
 });
 
@@ -135,8 +140,8 @@ suite.skip ('text', () => {});
 suite ('is', () => {
   test ('returns Boolean test of tag name', () => {
     const node = parseOne ('<p> My goodness! </p>');
-    eq (H.is ('p') (node), true);
-    eq (H.is ('a') (node), false);
+    eq (H.is ('p') (node)) (true);
+    eq (H.is ('a') (node)) (false);
   });
 });
 
@@ -144,14 +149,14 @@ suite ('find', () => {
   test ('finds unique matching node by id', () => {
     const matches = S.chain (H.find ('#main-paragraph'), H.parse (GOOD_HTML));
     // Assert html string
-    eq (S.map (H.html, matches),
-        ['<p id="main-paragraph">What a wonderful webpage!</p>']);
+    eq (S.map (H.html, matches))
+       (['<p id="main-paragraph">What a wonderful webpage!</p>']);
   });
   test ('finds multiple matches by attribute', () => {
     const matches = S.chain (H.find ('[type=checkbox]'), H.parse (GOOD_HTML));
     // Assert html string
-    eq (S.map (H.html, matches),
-        ['<input type="checkbox" value="1" name="myCheckbox" checked>',
+    eq (S.map (H.html, matches))
+       (['<input type="checkbox" value="1" name="myCheckbox" checked>',
          '<input type="checkbox" value="2" name="myCheckbox" checked="checked">',
          '<input type="checkbox" value="3" name="myCheckbox">']);
   });
@@ -162,12 +167,12 @@ suite ('children', () => {
     const children =
       S.chain (H.children) (S.chain (H.find ('ul')) (H.parse (GOOD_HTML)));
     // Assert html string
-    eq (children.length, 7);
-    eq (S.joinWith ('', S.map (H.html, children)),
-        fs.readFileSync (path.join (__dirname, 'children.html'), 'utf8'));
+    eq (children.length) (7);
+    eq (S.joinWith ('') (S.map (H.html, children)))
+       (fs.readFileSync (path.join (__dirname, 'children.html'), 'utf8'));
   });
   test ('returns empty array given element with no children', () => {
-    eq (H.children (parseOne ('<p></p>')), []);
+    eq (H.children (parseOne ('<p></p>'))) ([]);
   });
 });
 
@@ -181,14 +186,14 @@ suite ('parent', () => {
     // Assert parent of each child is expected parent
     parents.forEach (parent => {
       // Assert html string
-      eq (S.map (H.html, parent),
-          S.Just (fs.readFileSync (path.join (__dirname, 'ul_tag.html'),
+      eq (S.map (H.html, parent))
+         (S.Just (fs.readFileSync (path.join (__dirname, 'ul_tag.html'),
                                   'utf8')));
     });
   });
   test ('returns Nothing given one of top-level nodes', () => {
-    eq (S.map (H.parent, H.parse (GOOD_HTML)),
-        [S.Nothing, S.Nothing, S.Nothing, S.Nothing]);
+    eq (S.map (H.parent, H.parse (GOOD_HTML)))
+       ([S.Nothing, S.Nothing, S.Nothing, S.Nothing]);
   });
 });
 
