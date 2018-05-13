@@ -4,25 +4,19 @@ const assert = require ('assert');
 const fs = require ('fs');
 const path = require ('path');
 
-const R = require ('ramda');
 const {create, env} = require ('sanctuary');
 
 const H = require ('..');
 
 
-const createOpts = {
+const S = create ({
   checkTypes: true,
   env: env.concat ([H.ElementType, H.NodeType, H.SelectorType]),
-};
-
-const S = create (createOpts);
-
-const nothing = S.Nothing;
-const just = S.Just;
+});
 
 function eq(actual, expected) {
   assert.strictEqual (arguments.length, eq.length);
-  assert.strictEqual (R.toString (actual), R.toString (expected));
+  assert.strictEqual (S.toString (actual), S.toString (expected));
 }
 
 const GOOD_HTML = fs.readFileSync (path.join (__dirname, 'good.html'), 'utf8');
@@ -52,13 +46,14 @@ suite ('Node', () => {
     const node = H.Node (_node);
     eq (node.value, _node);
     eq (S.type (node), 'sanctuary-html/Node');
-    eq (R.toString (node), 'Node ("foo")');
-    eq (R.equals (node, H.Node (_node)), true);
+    eq (S.toString (node), 'Node ("foo")');
+    eq (S.equals (node, H.Node (_node)), true);
   });
 
   test ('Node.equals returns true for equivalent nodes', () => {
-    const nodeOther = H.Node (R.clone (_node));
-    eq (S.equals (node, nodeOther), true);
+    eq (S.equals (H.Node ({data: 'foo', type: 'text', next: null, prev: null, parent: null}))
+                 (H.Node ({data: 'foo', type: 'text', next: null, prev: null, parent: null})),
+        true);
   });
 
   test ('Node.equals returns false non-equivalent nodes', () => {
@@ -98,43 +93,38 @@ suite ('parse', () => {
 suite ('attr', () => {
   test ('returns value of attribute for given node #1', () => {
     const node = parseOne ('<h1 class="bigtitle">My text</h1>');
-    eq (H.attr ('class') (node), just ('bigtitle'));
+    eq (H.attr ('class') (node), S.Just ('bigtitle'));
   });
   test ('returns value of attribute for given node #2', () => {
     const node = parseOne ('<p id="main-paragraph">What a great webpage!</p>');
-    eq (H.attr ('id') (node), just ('main-paragraph'));
+    eq (H.attr ('id') (node), S.Just ('main-paragraph'));
   });
   test ('returns value of attribute for given node with spaces', () => {
     const node = parseOne ('<h1 class="bigtitle foo">My text</h1>');
-    eq (H.attr ('class') (node), just ('bigtitle foo'));
+    eq (H.attr ('class') (node), S.Just ('bigtitle foo'));
   });
   test ('returns value of arbitrary attribute', () => {
     const node = parseOne ('<p myattribute="booyah">What a great webpage!</p>');
-    eq (H.attr ('myattribute') (node), just ('booyah'));
+    eq (H.attr ('myattribute') (node), S.Just ('booyah'));
   });
   test ('returns Nothing if attribute does not exist', () => {
     const node = parseOne ('<p id="main-paragraph">What a great webpage!</p>');
-    eq (H.attr ('style') (node), nothing);
+    eq (H.attr ('style') (node), S.Nothing);
   });
   test ('returns empty string value for boolean attributes', () => {
     const node = parseOne ('<input type="checkbox" checked>');
-    eq (H.attr ('checked') (node), just (''));
+    eq (H.attr ('checked') (node), S.Just (''));
   });
 });
 
 suite ('html', () => {
   // TK: Good candidate for table and/or property based tests.
   test ('returns HTML of Node #1', () => {
-    const html = S.pipe ([H.parse,
-                          S.map (H.html),
-                          R.join ('')],
-                         GOOD_HTML);
-    eq (html, GOOD_HTML);
+    eq (S.joinWith ('') (S.map (H.html) (H.parse (GOOD_HTML))), GOOD_HTML);
   });
   test ('returns HTML of Node #2', () => {
     const htmlString = '<p> My goodness! </p>';
-    const html = H.html (parseOne (htmlString));
-    eq (html, htmlString);
+    eq (H.html (parseOne (htmlString)), htmlString);
   });
 });
 
@@ -168,10 +158,8 @@ suite ('find', () => {
 
 suite ('children', () => {
   test ('returns child nodes given parent node', () => {
-    const children = S.pipe ([H.parse,
-                              S.chain (H.find ('ul')),
-                              S.chain (H.children)],
-                             GOOD_HTML);
+    const children =
+      S.chain (H.children) (S.chain (H.find ('ul')) (H.parse (GOOD_HTML)));
     // Assert html string
     eq (children.length, 7);
     eq (S.joinWith ('', S.map (H.html, children)),
@@ -184,11 +172,11 @@ suite ('children', () => {
 
 suite ('parent', () => {
   test ('returns parent node given child node', () => {
-    const parents = S.pipe ([H.parse,
-                             S.chain (H.find ('ul')),
-                             S.chain (H.children),
-                             R.map (H.parent)],
-                            GOOD_HTML);
+    const parents =
+      S.map (H.parent)
+            (S.chain (H.children)
+                     (S.chain (H.find ('ul'))
+                              (H.parse (GOOD_HTML))));
     // Assert parent of each child is expected parent
     parents.forEach (parent => {
       // Assert html string
@@ -199,7 +187,7 @@ suite ('parent', () => {
   });
   test ('returns Nothing given one of top-level nodes', () => {
     eq (S.map (H.parent, H.parse (GOOD_HTML)),
-        [nothing, nothing, nothing, nothing]);
+        [S.Nothing, S.Nothing, S.Nothing, S.Nothing]);
   });
 });
 
