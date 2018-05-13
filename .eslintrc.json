@@ -15,7 +15,10 @@
     {
       "files": ["index.js"],
       "rules": {
-        "max-len": ["error", {"code": 79, "ignoreUrls": true, "ignorePattern": "^//(# |[.] [>'])"}]
+        "func-call-spacing": ["off"],
+        "indent": ["off"],
+        "max-len": ["error", {"code": 79, "ignoreUrls": true, "ignorePattern": "^//(# |[.] [>'])"}],
+        "no-unexpected-multiline": ["off"]
       }
     }
   ]

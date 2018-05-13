@@ -95,27 +95,27 @@ suite('parse', () => {
 suite('attr', () => {
   test('returns value of attribute for given node #1', () => {
     const node = parseOne('<h1 class="bigtitle">My text</h1>');
-    eq(H.attr('class', node), just('bigtitle'));
+    eq(H.attr('class')(node), just('bigtitle'));
   });
   test('returns value of attribute for given node #2', () => {
     const node = parseOne('<p id="main-paragraph">What a great webpage!</p>');
-    eq(H.attr('id', node), just('main-paragraph'));
+    eq(H.attr('id')(node), just('main-paragraph'));
   });
   test('returns value of attribute for given node with spaces', () => {
     const node = parseOne('<h1 class="bigtitle foo">My text</h1>');
-    eq(H.attr('class', node), just('bigtitle foo'));
+    eq(H.attr('class')(node), just('bigtitle foo'));
   });
   test('returns value of arbitrary attribute', () => {
     const node = parseOne('<p myattribute="booyah">What a great webpage!</p>');
-    eq(H.attr('myattribute', node), just('booyah'));
+    eq(H.attr('myattribute')(node), just('booyah'));
   });
   test('returns Nothing if attribute does not exist', () => {
     const node = parseOne('<p id="main-paragraph">What a great webpage!</p>');
-    eq(H.attr('style', node), nothing);
+    eq(H.attr('style')(node), nothing);
   });
   test('returns empty string value for boolean attributes', () => {
     const node = parseOne('<input type="checkbox" checked>');
-    eq(H.attr('checked', node), just(''));
+    eq(H.attr('checked')(node), just(''));
   });
 });
 
@@ -141,8 +141,8 @@ suite.skip('text', () => {});
 suite('is', () => {
   test('returns Boolean test of tag name', () => {
     const node = parseOne('<p> My goodness! </p>');
-    eq(H.is('p', node), true);
-    eq(H.is('a', node), false);
+    eq(H.is('p')(node), true);
+    eq(H.is('a')(node), false);
   });
 });
 

@@ -30,25 +30,22 @@ const H = module.exports;
 const is = $.test([]);
 
 //  NodeType :: Type
-const NodeType = H.NodeType = $.NullaryType(
-  'sanctuary-html/Node',
-  'TK',
-  x => S.type(x) === 'sanctuary-html/Node'
-);
+const NodeType = H.NodeType = $.NullaryType
+  ('sanctuary-html/Node')
+  ('TK')
+  (x => S.type(x) === 'sanctuary-html/Node');
 
 //  ElementType :: Type
-const ElementType = H.ElementType = $.NullaryType(
-  'sanctuary-html/Element',
-  'TK',
-  x => is(NodeType, x) && domelementtype.isTag(x.value)
-);
+const ElementType = H.ElementType = $.NullaryType
+  ('sanctuary-html/Element')
+  ('TK')
+  (x => is(NodeType)(x) && domelementtype.isTag(x.value));
 
 //  SelectorType :: Type
-const SelectorType = H.SelectorType = $.NullaryType(
-  'sanctuary-html/Selector',
-  'TK',
-  x => is($.String, x) && x !== '' && S.encase(select.compile, x).isJust
-);
+const SelectorType = H.SelectorType = $.NullaryType
+  ('sanctuary-html/Selector')
+  ('TK')
+  (x => is($.String)(x) && x !== '' && S.encase(select.compile, x).isJust);
 
 //  createOpts :: { checkTypes :: Boolean, env :: Array Type }
 const createOpts = {
@@ -59,7 +56,6 @@ const createOpts = {
 //  S :: Module
 const S = create(createOpts), {Nothing, Just} = S;
 
-//  def :: (String, StrMap (Array TypeClass), Array Type, Function) -> Function
 const def = $.create(createOpts);
 
 //  Node :: HtmlParserNode -> Node
@@ -69,7 +65,7 @@ function Node(_node) {
 }
 
 //  Node :: HtmlParserNode -> Node
-H.Node = def('Node', {}, [$.Any, NodeType], Node);
+H.Node = def('Node')({})([$.Any, NodeType])(Node);
 
 //  Node.@@type :: String
 Node['@@type'] = 'sanctuary-html/Node';
@@ -100,10 +96,10 @@ Node.prototype['fantasy-land/equals'] = function(other) {
 //. '[Node("foo "), Node("<b>bar</b>"), Node(" baz")]'
 //. ```
 H.parse =
-def('parse',
-    {},
-    [$.String, $.Array(NodeType)],
-    s => {
+def('parse')
+   ({})
+   ([$.String, $.Array(NodeType)])
+   (s => {
       let nodes;
       const handler = new htmlparser.DomHandler((err, dom) => {
         if (err != null) {
@@ -135,10 +131,10 @@ const _html = _node => serializer(_node, {});
 //. ['foo ', '<b>bar</b>', ' baz']
 //. ```
 H.html =
-def('html',
-    {},
-    [NodeType, $.String],
-    node => _html(node.value));
+def('html')
+   ({})
+   ([NodeType, $.String])
+   (node => _html(node.value));
 
 //  _text :: HtmlParserNode -> String
 function _text(_node) {
@@ -174,10 +170,10 @@ function _text(_node) {
 //. ['foo', 'bar']
 //. ```
 H.text =
-def('text',
-    {},
-    [NodeType, $.String],
-    node => _text(node.value));
+def('text')
+   ({})
+   ([NodeType, $.String])
+   (node => _text(node.value));
 
 //# find :: Selector -> Node -> Array Node
 //.
@@ -192,10 +188,10 @@ def('text',
 //. []
 //. ```
 H.find =
-def('find',
-    {},
-    [SelectorType, NodeType, $.Array(NodeType)],
-    (selector, node) => S.map(Node, select(selector, node.value, {})));
+def('find')
+   ({})
+   ([SelectorType, NodeType, $.Array(NodeType)])
+   (selector => node => S.map(Node, select(selector, node.value, {})));
 
 //# attr :: String -> Node -> Maybe String
 //.
@@ -206,10 +202,10 @@ def('find',
 //. '[Just("selected"), Nothing]'
 //. ```
 H.attr =
-def('attr',
-    {},
-    [$.String, NodeType, S.MaybeType($.String)],
-    (key, node) => S.get(S.is(String), key, node.value.attribs));
+def('attr')
+   ({})
+   ([$.String, NodeType, S.MaybeType($.String)])
+   (key => node => S.get(S.is(String), key, node.value.attribs));
 
 //# is :: Selector -> Node -> Boolean
 //.
@@ -220,10 +216,10 @@ def('attr',
 //. [true, false, false]
 //. ```
 H.is =
-def('is',
-    {},
-    [SelectorType, NodeType, $.Boolean],
-    (selector, node) => select.is(node.value, selector, {}));
+def('is')
+   ({})
+   ([SelectorType, NodeType, $.Boolean])
+   (selector => node => select.is(node.value, selector, {}));
 
 //# children :: Element -> Array Node
 //.
@@ -234,10 +230,10 @@ def('is',
 //. '[Node("<li>one</li>"), Node("<li>two</li>")]'
 //. ```
 H.children =
-def('children',
-    {},
-    [ElementType, $.Array(NodeType)],
-    el => S.map(Node, el.value.children));
+def('children')
+   ({})
+   ([ElementType, $.Array(NodeType)])
+   (el => S.map(Node, el.value.children));
 
 //# parent :: Node -> Maybe Element
 //.
@@ -251,10 +247,10 @@ def('children',
 //. [Nothing]
 //. ```
 H.parent =
-def('parent',
-    {},
-    [NodeType, S.MaybeType(ElementType)],
-    S.compose(S.map(Node), S.gets(S.is(Object), ['value', 'parent'])));
+def('parent')
+   ({})
+   ([NodeType, S.MaybeType(ElementType)])
+   (S.compose(S.map(Node), S.gets(S.is(Object), ['value', 'parent'])));
 
 //# prev :: Element -> Maybe Element
 //.
@@ -268,10 +264,10 @@ def('parent',
 //. Nothing
 //. ```
 H.prev =
-def('prev',
-    {},
-    [ElementType, S.MaybeType(ElementType)],
-    el => {
+def('prev')
+   ({})
+   ([ElementType, S.MaybeType(ElementType)])
+   (el => {
       for (let _node = el.value.prev; _node != null; _node = _node.prev) {
         if (domelementtype.isTag(_node)) return Just(Node(_node));
       }
@@ -290,10 +286,10 @@ def('prev',
 //. Nothing
 //. ```
 H.next =
-def('next',
-    {},
-    [ElementType, S.MaybeType(ElementType)],
-    el => {
+def('next')
+   ({})
+   ([ElementType, S.MaybeType(ElementType)])
+   (el => {
       for (let _node = el.value.next; _node != null; _node = _node.next) {
         if (domelementtype.isTag(_node)) return Just(Node(_node));
       }
