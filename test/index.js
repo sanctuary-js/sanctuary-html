@@ -45,7 +45,8 @@ suite ('Node', () => {
   test ('returns Node given htmlparser2 _node', () => {
     const node = H.Node (_node);
     eq (node.value, _node);
-    eq (S.type (node), 'sanctuary-html/Node');
+    eq (S.type (node),
+        {namespace: S.Just ('sanctuary-html'), name: 'Node', version: 0});
     eq (S.toString (node), 'Node ("foo")');
     eq (S.equals (node, H.Node (_node)), true);
   });

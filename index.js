@@ -21,6 +21,7 @@ const domelementtype    = require ('domelementtype');
 const htmlparser        = require ('htmlparser2');
 const {create, env}     = require ('sanctuary');
 const $                 = require ('sanctuary-def');
+const type              = require ('sanctuary-type-identifiers');
 
 
 //  H :: Module
@@ -33,7 +34,7 @@ const is = $.test ([]);
 const NodeType = H.NodeType = $.NullaryType
   ('sanctuary-html/Node')
   ('TK')
-  (x => S.type (x) === 'sanctuary-html/Node');
+  (x => type (x) === 'sanctuary-html/Node');
 
 //  ElementType :: Type
 const ElementType = H.ElementType = $.NullaryType
