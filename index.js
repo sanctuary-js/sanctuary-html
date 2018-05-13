@@ -15,69 +15,71 @@
 //.
 //. ## API
 
-const select            = require('css-select');
-const serializer        = require('dom-serializer');
-const domelementtype    = require('domelementtype');
-const htmlparser        = require('htmlparser2');
-const {create, env}     = require('sanctuary');
-const $                 = require('sanctuary-def');
+const select            = require ('css-select');
+const serializer        = require ('dom-serializer');
+const domelementtype    = require ('domelementtype');
+const htmlparser        = require ('htmlparser2');
+const {create, env}     = require ('sanctuary');
+const $                 = require ('sanctuary-def');
 
 
 //  H :: Module
 const H = module.exports;
 
 //  is :: Type -> a -> Boolean
-const is = $.test([]);
+const is = $.test ([]);
 
 //  NodeType :: Type
 const NodeType = H.NodeType = $.NullaryType
   ('sanctuary-html/Node')
   ('TK')
-  (x => S.type(x) === 'sanctuary-html/Node');
+  (x => S.type (x) === 'sanctuary-html/Node');
 
 //  ElementType :: Type
 const ElementType = H.ElementType = $.NullaryType
   ('sanctuary-html/Element')
   ('TK')
-  (x => is(NodeType)(x) && domelementtype.isTag(x.value));
+  (x => is (NodeType) (x) && domelementtype.isTag (x.value));
 
 //  SelectorType :: Type
 const SelectorType = H.SelectorType = $.NullaryType
   ('sanctuary-html/Selector')
   ('TK')
-  (x => is($.String)(x) && x !== '' && S.encase(select.compile, x).isJust);
+  (x => is ($.String) (x) &&
+        x !== '' &&
+        S.isJust (S.encase (select.compile, x)));
 
 //  createOpts :: { checkTypes :: Boolean, env :: Array Type }
 const createOpts = {
   checkTypes: true,
-  env: env.concat([NodeType, ElementType]),
+  env: env.concat ([NodeType, ElementType]),
 };
 
 //  S :: Module
-const S = create(createOpts), {Nothing, Just} = S;
+const S = create (createOpts), {Nothing, Just} = S;
 
-const def = $.create(createOpts);
+const def = $.create (createOpts);
 
 //  Node :: HtmlParserNode -> Node
 function Node(_node) {
-  if (!(this instanceof Node)) return new Node(_node);
+  if (!(this instanceof Node)) return new Node (_node);
   this.value = _node;
 }
 
 //  Node :: HtmlParserNode -> Node
-H.Node = def('Node')({})([$.Any, NodeType])(Node);
+H.Node = def ('Node') ({}) ([$.Any, NodeType]) (Node);
 
 //  Node.@@type :: String
 Node['@@type'] = 'sanctuary-html/Node';
 
 //  Node#toString :: Node ~> () -> String
 Node.prototype.toString = function() {
-  return `Node(${S.toString(_html(this.value))})`;
+  return `Node (${S.toString (_html (this.value))})`;
 };
 
 //  Node#fantasy-land/equals :: Node ~> Node -> Boolean
 Node.prototype['fantasy-land/equals'] = function(other) {
-  return String(this) === String(other);
+  return String (this) === String (other);
 };
 
 //# parse :: String -> Array Node
@@ -86,55 +88,55 @@ Node.prototype['fantasy-land/equals'] = function(other) {
 //. very forgiving so this operation will succeed even when given invalid HTML.
 //.
 //. ```javascript
-//. > S.toString(H.parse('<ul><li>foo</li><li>bar</li></ul>'))
-//. '[Node("<ul><li>foo</li><li>bar</li></ul>")]'
+//. > S.toString (H.parse ('<ul><li>foo</li><li>bar</li></ul>'))
+//. '[Node ("<ul><li>foo</li><li>bar</li></ul>")]'
 //.
-//. > S.toString(H.parse('<li>foo</li><li>bar</li>'))
-//. '[Node("<li>foo</li>"), Node("<li>bar</li>")]'
+//. > S.toString (H.parse ('<li>foo</li><li>bar</li>'))
+//. '[Node ("<li>foo</li>"), Node ("<li>bar</li>")]'
 //.
-//. > S.toString(H.parse('foo <b>bar</b> baz'))
-//. '[Node("foo "), Node("<b>bar</b>"), Node(" baz")]'
+//. > S.toString (H.parse ('foo <b>bar</b> baz'))
+//. '[Node ("foo "), Node ("<b>bar</b>"), Node (" baz")]'
 //. ```
 H.parse =
-def('parse')
-   ({})
-   ([$.String, $.Array(NodeType)])
-   (s => {
-      let nodes;
-      const handler = new htmlparser.DomHandler((err, dom) => {
-        if (err != null) {
-          throw err;
-        }
-        nodes = S.map(Node, dom);
-      });
-      const parser = new htmlparser.Parser(handler);
-      parser.write(s);
-      parser.done();
-      return nodes;
-    });
+def ('parse')
+    ({})
+    ([$.String, $.Array (NodeType)])
+    (s => {
+       let nodes;
+       const handler = new htmlparser.DomHandler ((err, dom) => {
+         if (err != null) {
+           throw err;
+         }
+         nodes = S.map (Node, dom);
+       });
+       const parser = new htmlparser.Parser (handler);
+       parser.write (s);
+       parser.done ();
+       return nodes;
+     });
 
 //  _html :: HtmlParserNode -> String
-const _html = _node => serializer(_node, {});
+const _html = _node => serializer (_node, {});
 
 //# html :: Node -> String
 //.
 //. Returns the HTML representation of the given `Node` value.
 //.
 //. ```javascript
-//. > S.map(H.html, H.parse('<ul><li>foo</li><li>bar</li></ul>'))
+//. > S.map (H.html, H.parse ('<ul><li>foo</li><li>bar</li></ul>'))
 //. ['<ul><li>foo</li><li>bar</li></ul>']
 //.
-//. > S.map(H.html, H.parse('<li>foo</li><li>bar</li>'))
+//. > S.map (H.html, H.parse ('<li>foo</li><li>bar</li>'))
 //. ['<li>foo</li>', '<li>bar</li>']
 //.
-//. > S.map(H.html, H.parse('foo <b>bar</b> baz'))
+//. > S.map (H.html, H.parse ('foo <b>bar</b> baz'))
 //. ['foo ', '<b>bar</b>', ' baz']
 //. ```
 H.html =
-def('html')
-   ({})
-   ([NodeType, $.String])
-   (node => _html(node.value));
+def ('html')
+    ({})
+    ([NodeType, $.String])
+    (node => _html (node.value));
 
 //  _text :: HtmlParserNode -> String
 function _text(_node) {
@@ -152,7 +154,7 @@ function _text(_node) {
     case domelementtype.Style:      // <style></style>
       return 'TK';
     case domelementtype.Tag:
-      return S.joinWith('', S.map(_text, _node.children));
+      return S.joinWith ('', S.map (_text, _node.children));
     case domelementtype.Text:
       return _node.data;
   }
@@ -163,17 +165,17 @@ function _text(_node) {
 //. Returns the text content of the given `Node` value.
 //.
 //. ```javascript
-//. > S.map(H.text, H.parse('<ul><li>foo</li><li>bar</li></ul>'))
+//. > S.map (H.text, H.parse ('<ul><li>foo</li><li>bar</li></ul>'))
 //. ['foobar']
 //.
-//. > S.map(H.text, S.chain(H.children, H.parse('<ul><li>foo</li><li>bar</li></ul>')))
+//. > S.map (H.text, S.chain (H.children, H.parse ('<ul><li>foo</li><li>bar</li></ul>')))
 //. ['foo', 'bar']
 //. ```
 H.text =
-def('text')
-   ({})
-   ([NodeType, $.String])
-   (node => _text(node.value));
+def ('text')
+    ({})
+    ([NodeType, $.String])
+    (node => _text (node.value));
 
 //# find :: Selector -> Node -> Array Node
 //.
@@ -181,117 +183,117 @@ def('text')
 //. `Selector` value.
 //.
 //. ```javascript
-//. > S.chain(H.find('li'), H.parse('<ul><li>foo</li><li>bar</li></ul>'))
-//. H.parse('<li>foo</li><li>bar</li>')
+//. > S.chain (H.find ('li'), H.parse ('<ul><li>foo</li><li>bar</li></ul>'))
+//. H.parse ('<li>foo</li><li>bar</li>')
 //.
-//. > S.chain(H.find('ul'), H.parse('<ul><li>foo</li><li>bar</li></ul>'))
+//. > S.chain (H.find ('ul'), H.parse ('<ul><li>foo</li><li>bar</li></ul>'))
 //. []
 //. ```
 H.find =
-def('find')
-   ({})
-   ([SelectorType, NodeType, $.Array(NodeType)])
-   (selector => node => S.map(Node, select(selector, node.value, {})));
+def ('find')
+    ({})
+    ([SelectorType, NodeType, $.Array (NodeType)])
+    (selector => node => S.map (Node, select (selector, node.value, {})));
 
 //# attr :: String -> Node -> Maybe String
 //.
 //. TK.
 //.
 //. ```javascript
-//. > S.toString(S.map(H.attr('class'), H.parse('<div class="selected"></div><div></div>')))
+//. > S.toString (S.map (H.attr ('class'), H.parse ('<div class="selected"></div><div></div>')))
 //. '[Just("selected"), Nothing]'
 //. ```
 H.attr =
-def('attr')
-   ({})
-   ([$.String, NodeType, S.MaybeType($.String)])
-   (key => node => S.get(S.is(String), key, node.value.attribs));
+def ('attr')
+    ({})
+    ([$.String, NodeType, S.MaybeType ($.String)])
+    (key => node => S.get (S.is (String), key, node.value.attribs));
 
 //# is :: Selector -> Node -> Boolean
 //.
 //. TK.
 //.
 //. ```javascript
-//. > S.map(H.is('.selected'), H.parse('<li class="selected">one</li><li>two</li><li>three</li>'))
+//. > S.map (H.is ('.selected'), H.parse ('<li class="selected">one</li><li>two</li><li>three</li>'))
 //. [true, false, false]
 //. ```
 H.is =
-def('is')
-   ({})
-   ([SelectorType, NodeType, $.Boolean])
-   (selector => node => select.is(node.value, selector, {}));
+def ('is')
+    ({})
+    ([SelectorType, NodeType, $.Boolean])
+    (selector => node => select.is (node.value, selector, {}));
 
 //# children :: Element -> Array Node
 //.
 //. TK.
 //.
 //. ```javascript
-//. > S.toString(S.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>')))
-//. '[Node("<li>one</li>"), Node("<li>two</li>")]'
+//. > S.toString (S.chain (H.children, H.parse ('<ul><li>one</li><li>two</li></ul>')))
+//. '[Node ("<li>one</li>"), Node ("<li>two</li>")]'
 //. ```
 H.children =
-def('children')
-   ({})
-   ([ElementType, $.Array(NodeType)])
-   (el => S.map(Node, el.value.children));
+def ('children')
+    ({})
+    ([ElementType, $.Array (NodeType)])
+    (el => S.map (Node, el.value.children));
 
 //# parent :: Node -> Maybe Element
 //.
 //. TK.
 //.
 //. ```javascript
-//. > S.toString(S.map(H.parent, S.chain(H.children, H.parse('<ul><li>one</li><li>two</li></ul>'))))
-//. '[Just(Node("<ul><li>one</li><li>two</li></ul>")), Just(Node("<ul><li>one</li><li>two</li></ul>"))]'
+//. > S.toString (S.map (H.parent, S.chain (H.children, H.parse ('<ul><li>one</li><li>two</li></ul>'))))
+//. '[Just(Node ("<ul><li>one</li><li>two</li></ul>")), Just(Node ("<ul><li>one</li><li>two</li></ul>"))]'
 //.
-//. > S.map(H.parent, H.parse('<ul></ul>'))
+//. > S.map (H.parent, H.parse ('<ul></ul>'))
 //. [Nothing]
 //. ```
 H.parent =
-def('parent')
-   ({})
-   ([NodeType, S.MaybeType(ElementType)])
-   (S.compose(S.map(Node), S.gets(S.is(Object), ['value', 'parent'])));
+def ('parent')
+    ({})
+    ([NodeType, S.MaybeType (ElementType)])
+    (S.compose (S.map (Node), S.gets (S.is (Object), ['value', 'parent'])));
 
 //# prev :: Element -> Maybe Element
 //.
 //. TK.
 //.
 //. ```javascript
-//. > S.pipe([H.parse, S.chain(H.find('li')), S.last, S.chain(H.prev), S.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
-//. Just('one')
+//. > S.pipe ([H.parse, S.chain (H.find ('li')), S.last, S.chain (H.prev), S.map (H.text)], '<ul><li>one</li><li>two</li></ul>')
+//. Just ('one')
 //.
-//. > S.pipe([H.parse, S.chain(H.find('li')), S.head, S.chain(H.prev), S.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
+//. > S.pipe ([H.parse, S.chain (H.find ('li')), S.head, S.chain (H.prev), S.map (H.text)], '<ul><li>one</li><li>two</li></ul>')
 //. Nothing
 //. ```
 H.prev =
-def('prev')
-   ({})
-   ([ElementType, S.MaybeType(ElementType)])
-   (el => {
-      for (let _node = el.value.prev; _node != null; _node = _node.prev) {
-        if (domelementtype.isTag(_node)) return Just(Node(_node));
-      }
-      return Nothing;
-    });
+def ('prev')
+    ({})
+    ([ElementType, S.MaybeType (ElementType)])
+    (el => {
+       for (let _node = el.value.prev; _node != null; _node = _node.prev) {
+         if (domelementtype.isTag (_node)) return Just (Node (_node));
+       }
+       return Nothing;
+     });
 
 //# next :: Element -> Maybe Element
 //.
 //. TK.
 //.
 //. ```javascript
-//. > S.pipe([H.parse, S.chain(H.find('li')), S.head, S.chain(H.next), S.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
-//. Just('two')
+//. > S.pipe ([H.parse, S.chain (H.find ('li')), S.head, S.chain (H.next), S.map (H.text)], '<ul><li>one</li><li>two</li></ul>')
+//. Just ('two')
 //.
-//. > S.pipe([H.parse, S.chain(H.find('li')), S.last, S.chain(H.next), S.map(H.text)], '<ul><li>one</li><li>two</li></ul>')
+//. > S.pipe ([H.parse, S.chain (H.find ('li')), S.last, S.chain (H.next), S.map (H.text)], '<ul><li>one</li><li>two</li></ul>')
 //. Nothing
 //. ```
 H.next =
-def('next')
-   ({})
-   ([ElementType, S.MaybeType(ElementType)])
-   (el => {
-      for (let _node = el.value.next; _node != null; _node = _node.next) {
-        if (domelementtype.isTag(_node)) return Just(Node(_node));
-      }
-      return Nothing;
-    });
+def ('next')
+    ({})
+    ([ElementType, S.MaybeType (ElementType)])
+    (el => {
+       for (let _node = el.value.next; _node != null; _node = _node.next) {
+         if (domelementtype.isTag (_node)) return Just (Node (_node));
+       }
+       return Nothing;
+     });
