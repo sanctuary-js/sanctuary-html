@@ -2,25 +2,18 @@
   "root": true,
   "extends": ["./node_modules/sanctuary-style/eslint-es6.json"],
   "env": {"node": true},
-  "rules": {
-    "func-call-spacing": ["error", "always", {"allowNewlines": true}]
-  },
   "overrides": [
     {
       "files": ["*.md"],
-      "plugins": ["markdown"],
       "globals": {"H": false, "Just": false, "Nothing": false, "S": false},
       "rules": {
-        "max-len": ["off"],
-        "strict": ["off"]
+        "max-len": ["off"]
       }
     },
     {
       "files": ["index.js"],
       "rules": {
-        "indent": ["off"],
-        "max-len": ["error", {"code": 79, "ignoreUrls": true, "ignorePattern": "^//(# |[.] [>'])"}],
-        "no-unexpected-multiline": ["off"]
+        "max-len": ["error", {"code": 79, "ignoreUrls": true, "ignorePattern": "^//(# |[.] [>'])"}]
       }
     },
     {
