@@ -7,12 +7,12 @@
     "type": "git",
     "url": "git://github.com/sanctuary-js/sanctuary-html.git"
   },
-  "scripts": {
-    "doctest": "sanctuary-doctest",
-    "lint": "sanctuary-lint",
-    "release": "sanctuary-release",
-    "test": "npm run lint && sanctuary-test && npm run doctest"
-  },
+  "files": [
+    "/LICENSE",
+    "/README.md",
+    "/index.js",
+    "/package.json"
+  ],
   "engines": {
     "node": ">=6.0.0"
   },
@@ -28,10 +28,10 @@
   "devDependencies": {
     "sanctuary-scripts": "2.0.x"
   },
-  "files": [
-    "/LICENSE",
-    "/README.md",
-    "/index.js",
-    "/package.json"
-  ]
+  "scripts": {
+    "doctest": "sanctuary-doctest",
+    "lint": "sanctuary-lint",
+    "release": "sanctuary-release",
+    "test": "npm run lint && sanctuary-test && npm run doctest"
+  }
 }
