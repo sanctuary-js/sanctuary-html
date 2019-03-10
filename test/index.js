@@ -19,8 +19,8 @@ function eq(actual) {
   assert.strictEqual (arguments.length, eq.length);
   return function eq$1(expected) {
     assert.strictEqual (arguments.length, eq$1.length);
-    assert.strictEqual (S.toString (actual), S.toString (expected));
-    assert.strictEqual (S.equals (actual, expected), true);
+    assert.strictEqual (S.show (actual), S.show (expected));
+    assert.strictEqual (S.equals (actual) (expected), true);
   };
 }
 
@@ -52,8 +52,8 @@ suite ('Node', () => {
     eq (node.value) (_node);
     eq (S.type (node))
        ({namespace: S.Just ('sanctuary-html'), name: 'Node', version: 0});
-    eq (S.toString (node)) ('Node ("foo")');
-    eq (S.equals (node, H.Node (_node))) (true);
+    eq (S.show (node)) ('Node ("foo")');
+    eq (S.equals (node) (H.Node (_node))) (true);
   });
 
   test ('Node.equals returns true for equivalent nodes', () => {
@@ -90,7 +90,7 @@ suite ('parse', () => {
     };
     eq (simpleNodes) ([H.Node (simpleExpected)]);
     // Assert circular htmlparser2 object after stripping circular values.
-    const htmlNodes = S.map (H.html, H.parse (GOOD_HTML));
+    const htmlNodes = S.map (H.html) (H.parse (GOOD_HTML));
     eq (htmlNodes.length) (4);
     eq (S.joinWith ('') (htmlNodes)) (GOOD_HTML);
   });
@@ -147,15 +147,15 @@ suite ('is', () => {
 
 suite ('find', () => {
   test ('finds unique matching node by id', () => {
-    const matches = S.chain (H.find ('#main-paragraph'), H.parse (GOOD_HTML));
+    const matches = S.chain (H.find ('#main-paragraph')) (H.parse (GOOD_HTML));
     // Assert html string
-    eq (S.map (H.html, matches))
+    eq (S.map (H.html) (matches))
        (['<p id="main-paragraph">What a wonderful webpage!</p>']);
   });
   test ('finds multiple matches by attribute', () => {
-    const matches = S.chain (H.find ('[type=checkbox]'), H.parse (GOOD_HTML));
+    const matches = S.chain (H.find ('[type=checkbox]')) (H.parse (GOOD_HTML));
     // Assert html string
-    eq (S.map (H.html, matches))
+    eq (S.map (H.html) (matches))
        (['<input type="checkbox" value="1" name="myCheckbox" checked>',
          '<input type="checkbox" value="2" name="myCheckbox" checked="checked">',
          '<input type="checkbox" value="3" name="myCheckbox">']);
@@ -168,7 +168,7 @@ suite ('children', () => {
       S.chain (H.children) (S.chain (H.find ('ul')) (H.parse (GOOD_HTML)));
     // Assert html string
     eq (children.length) (7);
-    eq (S.joinWith ('') (S.map (H.html, children)))
+    eq (S.joinWith ('') (S.map (H.html) (children)))
        (fs.readFileSync (path.join (__dirname, 'children.html'), 'utf8'));
   });
   test ('returns empty array given element with no children', () => {
@@ -186,13 +186,13 @@ suite ('parent', () => {
     // Assert parent of each child is expected parent
     parents.forEach (parent => {
       // Assert html string
-      eq (S.map (H.html, parent))
+      eq (S.map (H.html) (parent))
          (S.Just (fs.readFileSync (path.join (__dirname, 'ul_tag.html'),
                                   'utf8')));
     });
   });
   test ('returns Nothing given one of top-level nodes', () => {
-    eq (S.map (H.parent, H.parse (GOOD_HTML)))
+    eq (S.map (H.parent) (H.parse (GOOD_HTML)))
        ([S.Nothing, S.Nothing, S.Nothing, S.Nothing]);
   });
 });
