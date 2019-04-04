@@ -26,7 +26,7 @@
     "sanctuary-type-identifiers": "2.0.x"
   },
   "devDependencies": {
-    "sanctuary-scripts": "sanctuary-js/sanctuary-scripts#ae8bfe9acca55bd583d65b920127f6726cf3e192"
+    "sanctuary-scripts": "3.2.x"
   },
   "scripts": {
     "doctest": "sanctuary-doctest",
