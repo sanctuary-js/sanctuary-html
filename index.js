@@ -19,7 +19,7 @@ const select            = require ('css-select');
 const serializer        = require ('dom-serializer');
 const domelementtype    = require ('domelementtype');
 const htmlparser        = require ('htmlparser2');
-const {create, env}     = require ('sanctuary');
+const {create}          = require ('sanctuary');
 const $                 = require ('sanctuary-def');
 const type              = require ('sanctuary-type-identifiers');
 
@@ -29,28 +29,29 @@ const H = module.exports;
 
 //  NodeType :: Type
 const NodeType = H.NodeType = $.NullaryType
-  ('sanctuary-html/Node')
+  ('Node')
   ('TK')
+  ([])
   (x => type (x) === 'sanctuary-html/Node');
 
 //  ElementType :: Type
 const ElementType = H.ElementType = $.NullaryType
-  ('sanctuary-html/Element')
+  ('Element')
   ('TK')
-  (x => S.is (NodeType) (x) && domelementtype.isTag (x.value));
+  ([NodeType])
+  (x => domelementtype.isTag (x.value));
 
 //  SelectorType :: Type
 const SelectorType = H.SelectorType = $.NullaryType
-  ('sanctuary-html/Selector')
+  ('Selector')
   ('TK')
-  (x => S.is ($.String) (x) &&
-        x !== '' &&
-        S.isJust (S.encase (select.compile) (x)));
+  ([$.String])
+  (x => x !== '' && S.isRight (S.encase (select.compile) (x)));
 
 //  createOpts :: { checkTypes :: Boolean, env :: Array Type }
 const createOpts = {
   checkTypes: true,
-  env: env.concat ([NodeType, ElementType]),
+  env: $.env.concat ([NodeType]),
 };
 
 //  S :: Module
@@ -204,7 +205,7 @@ def ('find')
 H.attr =
 def ('attr')
     ({})
-    ([$.String, NodeType, S.MaybeType ($.String)])
+    ([$.String, NodeType, $.Maybe ($.String)])
     (key => node => S.get (S.is ($.String)) (key) (node.value.attribs));
 
 //# is :: Selector -> Node -> Boolean
@@ -249,7 +250,7 @@ def ('children')
 H.parent =
 def ('parent')
     ({})
-    ([NodeType, S.MaybeType (ElementType)])
+    ([NodeType, $.Maybe (ElementType)])
     (S.compose (S.map (Node))
                (S.gets (S.is ($.Object)) (['value', 'parent'])));
 
@@ -269,7 +270,7 @@ def ('parent')
 H.prev =
 def ('prev')
     ({})
-    ([ElementType, S.MaybeType (ElementType)])
+    ([ElementType, $.Maybe (ElementType)])
     (el => {
        for (let _node = el.value.prev; _node != null; _node = _node.prev) {
          if (domelementtype.isTag (_node)) return Just (Node (_node));
@@ -293,7 +294,7 @@ def ('prev')
 H.next =
 def ('next')
     ({})
-    ([ElementType, S.MaybeType (ElementType)])
+    ([ElementType, $.Maybe (ElementType)])
     (el => {
        for (let _node = el.value.next; _node != null; _node = _node.next) {
          if (domelementtype.isTag (_node)) return Just (Node (_node));
