@@ -68,8 +68,8 @@ function Node(_node) {
 //  Node :: HtmlParserNode -> Node
 H.Node = def ('Node') ({}) ([$.Any, NodeType]) (Node);
 
-//  Node.@@type :: String
-Node['@@type'] = 'sanctuary-html/Node';
+//  Node#@@type :: String
+Node.prototype['@@type'] = 'sanctuary-html/Node';
 
 //  Node#@@show :: Node ~> () -> String
 Node.prototype['@@show'] = function() {
