@@ -5,7 +5,7 @@
   "overrides": [
     {
       "files": ["*.md"],
-      "globals": {"H": false, "Just": false, "Nothing": false, "S": false},
+      "globals": {"H": "readonly", "Just": "readonly", "Nothing": "readonly", "S": "readonly"},
       "rules": {
         "max-len": ["off"]
       }
