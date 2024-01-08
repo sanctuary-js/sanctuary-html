@@ -19,6 +19,7 @@
     },
     {
       "files": ["test/**/*.js"],
+      "parserOptions": {"ecmaVersion": 2020, "sourceType": "module"},
       "rules": {
         "max-len": ["off"]
       }

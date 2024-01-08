@@ -1,17 +1,18 @@
-'use strict';
+import assert from 'assert';
+import fs from 'fs';
+import path from 'path';
+import url from 'url';
 
-const assert = require ('assert');
-const fs = require ('fs');
-const path = require ('path');
+import sanctuary from 'sanctuary';
 
-const {create, env} = require ('sanctuary');
-
-const H = require ('..');
+import H from '../index.js';
 
 
-const S = create ({
+const __dirname = path.dirname (url.fileURLToPath (import.meta.url));
+
+const S = sanctuary.create ({
   checkTypes: true,
-  env: env.concat ([H.ElementType, H.NodeType, H.SelectorType]),
+  env: sanctuary.env.concat ([H.ElementType, H.NodeType, H.SelectorType]),
 });
 
 //    eq :: a -> b -> Undefined !
