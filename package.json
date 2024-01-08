@@ -26,15 +26,12 @@
     "sanctuary-type-identifiers": "3.0.0"
   },
   "devDependencies": {
-    "sanctuary-scripts": "6.0.x"
+    "sanctuary-scripts": "7.0.x"
   },
   "scripts": {
     "doctest": "sanctuary-doctest",
     "lint": "sanctuary-lint",
     "release": "sanctuary-release",
     "test": "npm run lint && sanctuary-test && npm run doctest"
-  },
-  "mocha": {
-    "ui": "tdd"
   }
 }

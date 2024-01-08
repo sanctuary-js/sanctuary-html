@@ -4,17 +4,9 @@
   "env": {"node": true},
   "overrides": [
     {
-      "files": ["*.md"],
-      "globals": {"H": "readonly", "Just": "readonly", "Nothing": "readonly", "S": "readonly"},
-      "rules": {
-        "max-len": ["off"]
-      }
-    },
-    {
       "files": ["index.js"],
       "rules": {
-        "max-len": ["error", {"code": 79, "ignoreUrls": true, "ignorePattern": "^//(# |[.] [>'])"}],
-        "multiline-comment-style": ["off"]
+        "max-len": ["error", {"code": 79, "ignoreUrls": true, "ignorePattern": "^//(# |[.] [>'])"}]
       }
     },
     {
