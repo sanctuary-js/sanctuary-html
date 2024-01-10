@@ -1,0 +1,20 @@
+{
+  "root": true,
+  "extends": ["./node_modules/sanctuary-style/eslint.json"],
+  "env": {"node": true},
+  "overrides": [
+    {
+      "files": ["index.js"],
+      "rules": {
+        "max-len": ["error", {"code": 79, "ignoreUrls": true, "ignorePattern": "^//(# |[.] [>'])"}]
+      }
+    },
+    {
+      "files": ["test/**/*.js"],
+      "parserOptions": {"ecmaVersion": 2020, "sourceType": "module"},
+      "rules": {
+        "max-len": ["off"]
+      }
+    }
+  ]
+}
