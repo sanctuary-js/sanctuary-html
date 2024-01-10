@@ -1,7 +1,7 @@
-import {deepStrictEqual as eq} from 'assert';
-import fs from 'fs';
-import path from 'path';
-import url from 'url';
+import {deepStrictEqual as eq} from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import url from 'node:url';
 
 import test from 'oletus';
 import sanctuary from 'sanctuary';
